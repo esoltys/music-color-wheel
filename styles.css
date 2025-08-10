@@ -214,20 +214,21 @@ button.active {
 
 /* Mobile Menu Button */
 .mobile-menu-btn {
-    position: absolute;
+    position: fixed;
     top: 20px;
     left: 20px;
     z-index: 20;
-    background: rgba(0,0,0,0.8);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.9);
+    border: 2px solid rgba(255,255,255,0.5);
     border-radius: 8px;
     padding: 12px;
     cursor: pointer;
-    display: none;
+    display: flex; /* Temporarily always visible for debugging */
     flex-direction: column;
     gap: 3px;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
 .mobile-menu-btn span {
@@ -255,21 +256,21 @@ button.active {
     transform: rotate(-45deg) translate(7px, -6px);
 }
 
-/* Mobile Styles */
-@media (max-width: 768px) {
+/* Mobile Styles - covers both portrait and landscape */
+@media (max-width: 1024px), (max-height: 768px) {
     body {
         overflow: auto;
     }
     
     .mobile-menu-btn {
-        display: flex;
+        display: flex !important;
     }
     
     .controls {
         position: fixed;
         left: -100%;
         top: 0;
-        width: 280px;
+        width: min(280px, 40vw);
         height: 100vh;
         max-height: 100vh;
         transform: none;
@@ -286,7 +287,7 @@ button.active {
         position: fixed;
         right: -100%;
         top: 20px;
-        width: 250px;
+        width: min(250px, 35vw);
         height: auto;
         max-height: calc(100vh - 40px);
         overflow-y: auto;

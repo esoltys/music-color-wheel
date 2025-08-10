@@ -224,7 +224,7 @@ function toggleMobileMenus() {
 
 // Close mobile menus when a control is selected
 function closeMobileMenusOnSelection() {
-    if (window.innerWidth <= 768 && mobileMenuOpen) {
+    if ((window.innerWidth <= 1024 || window.innerHeight <= 768) && mobileMenuOpen) {
         toggleMobileMenus();
     }
 }
