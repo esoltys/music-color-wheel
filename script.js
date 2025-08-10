@@ -794,7 +794,25 @@ function playTwinkleTwinkle() {
         {note: 'C', octave: 4, duration: 800}
     ];
     
-    playMelody(melody, 'Twinkle, Twinkle, Little Star');
+    // Simple chord progression: C - C - G - G - F - F - G - C - C - C - C - G - G - C
+    const chords = [
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        null,
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        null,
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        null,
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        null,
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Twinkle, Twinkle, Little Star');
 }
 
 function playMaryLittleLamb() {
@@ -861,7 +879,19 @@ function playAmazingGrace() {
         {note: 'G', octave: 4, duration: 1200}
     ];
     
-    playMelody(melody, 'Amazing Grace');
+    // Rich chord progression: C - F - C - Am - F - G - C - G/C
+    const chords = [
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 1000}, // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 700},  // F major  
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},  // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 800},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 1200}, // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 1200}  // C major
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Amazing Grace');
 }
 
 function playGreensleeves() {
@@ -905,11 +935,107 @@ function playOdeToJoy() {
         {note: 'D', octave: 4, duration: 800}
     ];
     
-    playMelody(melody, 'Ode to Joy');
+    // Classical chord progression: C - C - F - C - G - Am - F - G - Am - F - G7 - C - G - G - C
+    const chords = [
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},  // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},  // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},  // G major
+        null,
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Ode to Joy');
 }
 
 
-// Helper function to play a melody with visual feedback
+// Helper function to play a chord (multiple notes simultaneously)
+function playChord(chordNotes, octave, duration, volume = 0.15, delay = 0) {
+    initAudio();
+    chordNotes.forEach(note => {
+        setTimeout(() => {
+            const freq = noteToFrequency(note, octave);
+            playNote(freq, duration, volume);
+        }, delay);
+    });
+}
+
+// Enhanced helper function to play a melody with optional chord accompaniment
+function playMelodyWithChords(melody, chords, title) {
+    let delay = 0;
+    highlightedSegments = [];
+    
+    document.getElementById('noteDisplay').textContent = `Playing: ${title}`;
+    document.getElementById('freqDisplay').textContent = 'With harmonic accompaniment!';
+    
+    melody.forEach((noteData, i) => {
+        // Play chord if specified for this note
+        if (chords && chords[i]) {
+            setTimeout(() => {
+                playChord(chords[i].notes, chords[i].octave, chords[i].duration, 0.12);
+                
+                // Visual highlighting for chord
+                const chordOctave = Math.max(0, Math.min(4, chords[i].octave - 3));
+                const chordSegments = chords[i].notes.map(note => `${note}-${chordOctave}`);
+                highlightedSegments = chordSegments;
+                drawWheel();
+            }, delay);
+        }
+        
+        // Start highlighting the melody note (slightly after chord)
+        setTimeout(() => {
+            const freq = noteToFrequency(noteData.note, noteData.octave);
+            playNote(freq, noteData.duration, 0.3); // Melody louder than chords
+            
+            // Visual highlighting for melody note
+            const visualOctave = Math.max(0, Math.min(4, noteData.octave - 3));
+            const melodySegment = `${noteData.note}-${visualOctave}`;
+            
+            // Combine chord and melody highlights
+            if (chords && chords[i]) {
+                const chordOctave = Math.max(0, Math.min(4, chords[i].octave - 3));
+                const chordSegments = chords[i].notes.map(note => `${note}-${chordOctave}`);
+                highlightedSegments = [...chordSegments, melodySegment];
+            } else {
+                highlightedSegments = [melodySegment];
+            }
+            drawWheel();
+            
+            const noteIndex = notes.indexOf(noteData.note);
+            document.getElementById('noteDisplay').textContent = `${noteData.note}${noteData.octave}`;
+            document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
+            document.getElementById('freqDisplay').textContent = `${title} - Note ${i + 1} of ${melody.length}`;
+        }, delay + 50); // Melody slightly after chord
+        
+        // Clear highlighting briefly before the next note
+        setTimeout(() => {
+            highlightedSegments = [];
+            drawWheel();
+        }, delay + noteData.duration - 30);
+        
+        delay += noteData.duration + 50;
+    });
+    
+    // Clean up after melody finishes
+    setTimeout(() => {
+        highlightedSegments = [];
+        drawWheel();
+        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
+        document.getElementById('noteDisplay').style.color = '#fff';
+        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+    }, delay + 200);
+}
+
+// Helper function to play a melody with visual feedback (original function for simple melodies)
 function playMelody(melody, title) {
     let delay = 0;
     highlightedSegments = [];
