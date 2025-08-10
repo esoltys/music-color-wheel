@@ -10,7 +10,8 @@ An interactive visualization that maps musical notes to colors in a circular int
 - **5-octave color wheel** with chromatic notes mapped to HSL color space
 - **Click to play** individual notes across different octaves
 - **Hover for information** - see note names, frequencies, and octave ranges
-- **Responsive design** that works on desktop, tablet, and mobile
+- **Mobile-optimized** with collapsible hamburger menus and touch-friendly controls
+- **Responsive design** that adapts to desktop, tablet, and mobile devices
 
 ### Music Theory Exploration
 - **Scales**: Major, minor, pentatonic, blues, dorian, mixolydian, whole-tone, and glissando
@@ -22,12 +23,15 @@ An interactive visualization that maps musical notes to colors in a circular int
   - Amazing Grace (rich C-F-Am-G progression)
   - Greensleeves (complex minor key harmony)
   - Ode to Joy (classical progression with extensive chord movement)
+  - Für Elise (Beethoven's masterpiece with romantic A minor harmony)
 
 ### Audio & Visual
 - **Real-time audio synthesis** using Web Audio API with envelope shaping
+- **Equal loudness compensation** for consistent perceived volume across frequencies
 - **Synchronized visual highlighting** showing both melody and chord relationships
 - **Flashing notes** for repeated pitches in melodies
 - **Frequency display** showing exact Hz values for each note
+- **Touch-optimized** with debounced interactions and mobile gesture support
 
 ## Music & Color Theory
 
@@ -56,15 +60,18 @@ Each musical note is mapped to a specific color around the wheel:
 - **Visual octaves 0-4** map to **audio octaves 3-7** for optimal audibility
 - **Hover** to see note names, frequencies, and octave information
 - **Click** to play individual notes with 500ms duration
-- **Control panel** provides organized access to scales, chords, and melodies
+- **Mobile menus** - separate hamburger (☰) and info (?) buttons for controls and legend
+- **Background tap** to dismiss open menus for streamlined mobile experience
 
 ## Technical Implementation
 
 - **Pure vanilla JavaScript** - no external dependencies
 - **HTML5 Canvas** for high-performance circular visualization
 - **Web Audio API** for real-time sound synthesis with gain envelopes
+- **A-weighting equal loudness** compensation based on psychoacoustic research
 - **Equal temperament tuning** with A4 = 440Hz standard
 - **HSL color mapping** for perceptually uniform color relationships
+- **Mobile-first responsive design** with collapsible UI panels and touch optimization
 - **Modular code structure** with separate CSS, JavaScript, and HTML files
 - **GitHub Pages deployment** with social sharing meta tags
 
