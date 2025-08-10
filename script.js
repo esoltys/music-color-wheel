@@ -908,48 +908,6 @@ function playOdeToJoy() {
     playMelody(melody, 'Ode to Joy');
 }
 
-function playJingleBells() {
-    initAudio();
-    // Jingle Bells: E-E-E-E-E-E-E-G-C-D-E
-    const melody = [
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'E', octave: 4, duration: 800},
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'E', octave: 4, duration: 800},
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'G', octave: 4, duration: 400},
-        {note: 'C', octave: 4, duration: 400},
-        {note: 'D', octave: 4, duration: 400},
-        {note: 'E', octave: 4, duration: 1200}
-    ];
-    
-    playMelody(melody, 'Jingle Bells');
-}
-
-function playSilentNight() {
-    initAudio();
-    // Silent Night: G-A-G-E-G-A-G-E-D-D-B-C-C-G
-    const melody = [
-        {note: 'G', octave: 4, duration: 600},
-        {note: 'A', octave: 4, duration: 300},
-        {note: 'G', octave: 4, duration: 500},
-        {note: 'E', octave: 4, duration: 1000},
-        {note: 'G', octave: 4, duration: 600},
-        {note: 'A', octave: 4, duration: 300},
-        {note: 'G', octave: 4, duration: 500},
-        {note: 'E', octave: 4, duration: 1000},
-        {note: 'D', octave: 5, duration: 600},
-        {note: 'D', octave: 5, duration: 400},
-        {note: 'B', octave: 4, duration: 1200},
-        {note: 'C', octave: 5, duration: 600},
-        {note: 'C', octave: 5, duration: 400},
-        {note: 'G', octave: 4, duration: 1200}
-    ];
-    
-    playMelody(melody, 'Silent Night');
-}
 
 // Helper function to play a melody with visual feedback
 function playMelody(melody, title) {
@@ -960,6 +918,7 @@ function playMelody(melody, title) {
     document.getElementById('freqDisplay').textContent = 'Watch the notes light up!';
     
     melody.forEach((noteData, i) => {
+        // Start highlighting the note
         setTimeout(() => {
             const freq = noteToFrequency(noteData.note, noteData.octave);
             playNote(freq, noteData.duration, 0.25);
@@ -974,6 +933,13 @@ function playMelody(melody, title) {
             document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
             document.getElementById('freqDisplay').textContent = `${title} - Note ${i + 1} of ${melody.length}`;
         }, delay);
+        
+        // Clear highlighting briefly before the next note (for repeated note flashing)
+        setTimeout(() => {
+            highlightedSegments = [];
+            drawWheel();
+        }, delay + noteData.duration - 30); // Clear 30ms before next note
+        
         delay += noteData.duration + 50; // Small gap between notes
     });
     
@@ -1172,9 +1138,7 @@ window.addEventListener('load', () => {
         { id: 'happy-birthday-btn', func: playHappyBirthday },
         { id: 'amazing-grace-btn', func: playAmazingGrace },
         { id: 'greensleeves-btn', func: playGreensleeves },
-        { id: 'ode-to-joy-btn', func: playOdeToJoy },
-        { id: 'jingle-bells-btn', func: playJingleBells },
-        { id: 'silent-night-btn', func: playSilentNight }
+        { id: 'ode-to-joy-btn', func: playOdeToJoy }
     ];
     
     melodyButtons.forEach(({ id, func }) => {
