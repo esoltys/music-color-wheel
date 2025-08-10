@@ -242,6 +242,29 @@ function closeMobileControlsOnSelection() {
     }
 }
 
+// Close menus when tapping outside
+function closeMobileMenusOnOutsideClick(e) {
+    // Don't close if tapping on the mobile buttons themselves
+    if (e.target.closest('.mobile-controls-btn') || e.target.closest('.mobile-legend-btn')) {
+        return;
+    }
+    
+    // Don't close if tapping inside the panels
+    if (e.target.closest('.controls') || e.target.closest('.legend')) {
+        return;
+    }
+    
+    // Close both panels if they're open and we're on mobile
+    if (window.innerWidth <= 1024 || window.innerHeight <= 768) {
+        if (mobileControlsOpen) {
+            toggleMobileControls();
+        }
+        if (mobileLegendOpen) {
+            toggleMobileLegend();
+        }
+    }
+}
+
 // Make functions globally accessible
 window.toggleMobileControls = toggleMobileControls;
 window.toggleMobileLegend = toggleMobileLegend;
@@ -1220,10 +1243,27 @@ canvas.addEventListener('mousemove', (e) => {
     }
 });
 
-canvas.addEventListener('click', (e) => {
+// Prevent rapid repeated touches
+let lastTouchTime = 0;
+const TOUCH_DEBOUNCE_MS = 150;
+
+function handleCanvasTouch(e) {
+    // Prevent default touch behavior
+    e.preventDefault();
+    
+    const now = Date.now();
+    if (now - lastTouchTime < TOUCH_DEBOUNCE_MS) {
+        return;
+    }
+    lastTouchTime = now;
+    
+    // Handle both touch and mouse coordinates
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
     const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width) - centerX;
-    const y = (e.clientY - rect.top) * (canvas.height / rect.height) - centerY;
+    const x = (clientX - rect.left) * (canvas.width / rect.width) - centerX;
+    const y = (clientY - rect.top) * (canvas.height / rect.height) - centerY;
     
     const distance = Math.sqrt(x * x + y * y);
     let angle = Math.atan2(y, x) + Math.PI / 2;
@@ -1261,6 +1301,20 @@ canvas.addEventListener('click', (e) => {
             document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
         }, 500);
     }
+}
+
+// Add both click and touch event listeners
+canvas.addEventListener('click', handleCanvasTouch);
+canvas.addEventListener('touchstart', handleCanvasTouch, { passive: false });
+
+// Prevent context menu on long press
+canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+});
+
+// Prevent touch hold effects
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
 });
 
 canvas.addEventListener('mouseleave', () => {
@@ -1386,6 +1440,10 @@ window.addEventListener('load', () => {
             setTimeout(closeMobileControlsOnSelection, 100);
         }
     });
+    
+    // Add outside click to close mobile menus
+    document.addEventListener('click', closeMobileMenusOnOutsideClick);
+    document.addEventListener('touchstart', closeMobileMenusOnOutsideClick, { passive: true });
 });
 
 // Redraw on resize - outside of load event
