@@ -834,7 +834,24 @@ function playMaryLittleLamb() {
         {note: 'G', octave: 4, duration: 800}
     ];
     
-    playMelody(melody, 'Mary Had a Little Lamb');
+    // Simple chord progression: C - G - C - G - C - C - C - G - G - G - C - C - C
+    const chords = [
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Mary Had a Little Lamb');
 }
 
 function playHappyBirthday() {
@@ -862,7 +879,30 @@ function playHappyBirthday() {
         {note: 'D', octave: 4, duration: 1000}
     ];
     
-    playMelody(melody, 'Happy Birthday');
+    // Classic Happy Birthday chord progression: C-C-G-C-F-C-C-C-G-C-C-F-C-C-F-F-F-C-G
+    const chords = [
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        null,
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 1000}, // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        null,
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major (over G melody)
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 1000}, // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        null,
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major (high C)
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major (A note)
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}  // G major resolving
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Happy Birthday');
 }
 
 function playAmazingGrace() {
@@ -911,7 +951,22 @@ function playGreensleeves() {
         {note: 'A', octave: 4, duration: 800}
     ];
     
-    playMelody(melody, 'Greensleeves');
+    // Minor key chord progression: Am - F - G - Em - F - C - G - Am - F - G - Am
+    const chords = [
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 1000}, // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 700},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 900},  // E minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 800},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}, // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 800},  // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 800},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 800}   // A minor
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Greensleeves');
 }
 
 function playOdeToJoy() {
