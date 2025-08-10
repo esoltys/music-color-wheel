@@ -773,6 +773,220 @@ function playAdd9Chord() {
     }, 1500);
 }
 
+// Song/Melody functions
+function playTwinkleTwinkle() {
+    initAudio();
+    // Twinkle, Twinkle, Little Star: C-C-G-G-A-A-G-F-F-E-E-D-D-C
+    const melody = [
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'A', octave: 4, duration: 400},
+        {note: 'A', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 800},
+        {note: 'F', octave: 4, duration: 400},
+        {note: 'F', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 800}
+    ];
+    
+    playMelody(melody, 'Twinkle, Twinkle, Little Star');
+}
+
+function playMaryLittleLamb() {
+    initAudio();
+    // Mary Had a Little Lamb: E-D-C-D-E-E-E-D-D-D-E-G-G
+    const melody = [
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 800},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 800},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 800}
+    ];
+    
+    playMelody(melody, 'Mary Had a Little Lamb');
+}
+
+function playHappyBirthday() {
+    initAudio();
+    // Happy Birthday: C-C-D-C-F-E-C-C-D-C-G-F-C-C-C-A-F-E-D
+    const melody = [
+        {note: 'C', octave: 4, duration: 300},
+        {note: 'C', octave: 4, duration: 200},
+        {note: 'D', octave: 4, duration: 500},
+        {note: 'C', octave: 4, duration: 500},
+        {note: 'F', octave: 4, duration: 500},
+        {note: 'E', octave: 4, duration: 1000},
+        {note: 'C', octave: 4, duration: 300},
+        {note: 'C', octave: 4, duration: 200},
+        {note: 'D', octave: 4, duration: 500},
+        {note: 'C', octave: 4, duration: 500},
+        {note: 'G', octave: 4, duration: 500},
+        {note: 'F', octave: 4, duration: 1000},
+        {note: 'C', octave: 4, duration: 300},
+        {note: 'C', octave: 4, duration: 200},
+        {note: 'C', octave: 5, duration: 500},
+        {note: 'A', octave: 4, duration: 500},
+        {note: 'F', octave: 4, duration: 500},
+        {note: 'E', octave: 4, duration: 500},
+        {note: 'D', octave: 4, duration: 1000}
+    ];
+    
+    playMelody(melody, 'Happy Birthday');
+}
+
+function playAmazingGrace() {
+    initAudio();
+    // Amazing Grace (first line): G-C-E-C-E-D-C-G
+    const melody = [
+        {note: 'G', octave: 4, duration: 600},
+        {note: 'C', octave: 5, duration: 400},
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'C', octave: 5, duration: 500},
+        {note: 'E', octave: 5, duration: 400},
+        {note: 'D', octave: 5, duration: 800},
+        {note: 'C', octave: 5, duration: 400},
+        {note: 'G', octave: 4, duration: 1200}
+    ];
+    
+    playMelody(melody, 'Amazing Grace');
+}
+
+function playGreensleeves() {
+    initAudio();
+    // Greensleeves (opening): A-C-D-E-F-E-D-C-A-G-A
+    const melody = [
+        {note: 'A', octave: 4, duration: 600},
+        {note: 'C', octave: 5, duration: 400},
+        {note: 'D', octave: 5, duration: 300},
+        {note: 'E', octave: 5, duration: 500},
+        {note: 'F', octave: 5, duration: 400},
+        {note: 'E', octave: 5, duration: 400},
+        {note: 'D', octave: 5, duration: 400},
+        {note: 'C', octave: 5, duration: 600},
+        {note: 'A', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'A', octave: 4, duration: 800}
+    ];
+    
+    playMelody(melody, 'Greensleeves');
+}
+
+function playOdeToJoy() {
+    initAudio();
+    // Ode to Joy (Beethoven): E-E-F-G-G-F-E-D-C-C-D-E-E-D-D
+    const melody = [
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'F', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'F', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 600},
+        {note: 'D', octave: 4, duration: 200},
+        {note: 'D', octave: 4, duration: 800}
+    ];
+    
+    playMelody(melody, 'Ode to Joy');
+}
+
+function playJingleBells() {
+    initAudio();
+    // Jingle Bells: E-E-E-E-E-E-E-G-C-D-E
+    const melody = [
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 800},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 800},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 1200}
+    ];
+    
+    playMelody(melody, 'Jingle Bells');
+}
+
+function playSilentNight() {
+    initAudio();
+    // Silent Night: G-A-G-E-G-A-G-E-D-D-B-C-C-G
+    const melody = [
+        {note: 'G', octave: 4, duration: 600},
+        {note: 'A', octave: 4, duration: 300},
+        {note: 'G', octave: 4, duration: 500},
+        {note: 'E', octave: 4, duration: 1000},
+        {note: 'G', octave: 4, duration: 600},
+        {note: 'A', octave: 4, duration: 300},
+        {note: 'G', octave: 4, duration: 500},
+        {note: 'E', octave: 4, duration: 1000},
+        {note: 'D', octave: 5, duration: 600},
+        {note: 'D', octave: 5, duration: 400},
+        {note: 'B', octave: 4, duration: 1200},
+        {note: 'C', octave: 5, duration: 600},
+        {note: 'C', octave: 5, duration: 400},
+        {note: 'G', octave: 4, duration: 1200}
+    ];
+    
+    playMelody(melody, 'Silent Night');
+}
+
+// Helper function to play a melody with visual feedback
+function playMelody(melody, title) {
+    let delay = 0;
+    highlightedSegments = [];
+    
+    document.getElementById('noteDisplay').textContent = `Playing: ${title}`;
+    document.getElementById('freqDisplay').textContent = 'Watch the notes light up!';
+    
+    melody.forEach((noteData, i) => {
+        setTimeout(() => {
+            const freq = noteToFrequency(noteData.note, noteData.octave);
+            playNote(freq, noteData.duration, 0.25);
+            
+            // Visual highlighting
+            const visualOctave = Math.max(0, Math.min(4, noteData.octave - 3)); // Map to visual rings
+            highlightedSegments = [`${noteData.note}-${visualOctave}`];
+            drawWheel();
+            
+            const noteIndex = notes.indexOf(noteData.note);
+            document.getElementById('noteDisplay').textContent = `${noteData.note}${noteData.octave}`;
+            document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
+            document.getElementById('freqDisplay').textContent = `${title} - Note ${i + 1} of ${melody.length}`;
+        }, delay);
+        delay += noteData.duration + 50; // Small gap between notes
+    });
+    
+    // Clean up after melody finishes
+    setTimeout(() => {
+        highlightedSegments = [];
+        drawWheel();
+        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
+        document.getElementById('noteDisplay').style.color = '#fff';
+        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+    }, delay + 200);
+}
+
 // Mouse interaction
 canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -949,6 +1163,39 @@ window.addEventListener('load', () => {
     
     document.getElementById('add9-btn').addEventListener('click', () => {
         playAdd9Chord();
+    });
+    
+    // Melody button listeners
+    document.getElementById('twinkle-btn').addEventListener('click', () => {
+        playTwinkleTwinkle();
+    });
+    
+    document.getElementById('mary-lamb-btn').addEventListener('click', () => {
+        playMaryLittleLamb();
+    });
+    
+    document.getElementById('happy-birthday-btn').addEventListener('click', () => {
+        playHappyBirthday();
+    });
+    
+    document.getElementById('amazing-grace-btn').addEventListener('click', () => {
+        playAmazingGrace();
+    });
+    
+    document.getElementById('greensleeves-btn').addEventListener('click', () => {
+        playGreensleeves();
+    });
+    
+    document.getElementById('ode-to-joy-btn').addEventListener('click', () => {
+        playOdeToJoy();
+    });
+    
+    document.getElementById('jingle-bells-btn').addEventListener('click', () => {
+        playJingleBells();
+    });
+    
+    document.getElementById('silent-night-btn').addEventListener('click', () => {
+        playSilentNight();
     });
 });
 
