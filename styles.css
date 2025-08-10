@@ -258,6 +258,8 @@ button.active {
     background: white;
     border-radius: 1px;
     transition: all 0.3s ease;
+    transform-origin: center;
+    display: block;
 }
 
 .legend-icon {
@@ -272,15 +274,16 @@ button.active {
 }
 
 .mobile-controls-btn.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
+    transform: translateY(5px) rotate(45deg);
 }
 
 .mobile-controls-btn.active span:nth-child(2) {
     opacity: 0;
+    transform: scaleX(0);
 }
 
 .mobile-controls-btn.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(7px, -6px);
+    transform: translateY(-5px) rotate(-45deg);
 }
 
 .mobile-legend-btn.active {
@@ -302,7 +305,7 @@ button.active {
         position: fixed;
         left: -100%;
         top: 0;
-        width: min(280px, 40vw);
+        width: min(320px, 80vw);
         height: 100vh;
         max-height: 100vh;
         transform: none;
@@ -318,10 +321,10 @@ button.active {
     .legend {
         position: fixed;
         right: -100%;
-        top: 20px;
+        top: 80px;
         width: min(250px, 35vw);
         height: auto;
-        max-height: calc(100vh - 40px);
+        max-height: calc(100vh - 100px);
         overflow-y: auto;
         transition: right 0.3s ease;
         z-index: 15;
