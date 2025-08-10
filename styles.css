@@ -174,3 +174,40 @@ button.active {
     border-radius: 50%;
     border: 1px solid rgba(255,255,255,0.3);
 }
+
+.github-link {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+.github-link a {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 12px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+}
+
+.github-link a:hover {
+    color: white;
+    background: rgba(0,0,0,0.7);
+    border-color: rgba(255,255,255,0.3);
+    transform: translateY(-1px);
+}
+
+.github-link svg {
+    opacity: 0.8;
+}
+
+.github-link a:hover svg {
+    opacity: 1;
+}
