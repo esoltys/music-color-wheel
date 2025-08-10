@@ -201,6 +201,37 @@ function showTab(tabName) {
 // Make showTab globally accessible
 window.showTab = showTab;
 
+// Mobile menu functionality
+let mobileMenuOpen = false;
+
+function toggleMobileMenus() {
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    const controls = document.querySelector('.controls');
+    const legend = document.querySelector('.legend');
+    
+    mobileMenuOpen = !mobileMenuOpen;
+    
+    if (mobileMenuOpen) {
+        menuBtn.classList.add('active');
+        controls.classList.add('mobile-open');
+        legend.classList.add('mobile-open');
+    } else {
+        menuBtn.classList.remove('active');
+        controls.classList.remove('mobile-open');
+        legend.classList.remove('mobile-open');
+    }
+}
+
+// Close mobile menus when a control is selected
+function closeMobileMenusOnSelection() {
+    if (window.innerWidth <= 768 && mobileMenuOpen) {
+        toggleMobileMenus();
+    }
+}
+
+// Make functions globally accessible
+window.toggleMobileMenus = toggleMobileMenus;
+
 function initAudio() {
     if (!audioCtx) {
         audioCtx = new AudioContext();
@@ -1325,9 +1356,20 @@ window.addEventListener('load', () => {
     melodyButtons.forEach(({ id, func }) => {
         const button = document.getElementById(id);
         if (button) {
-            button.addEventListener('click', func);
+            button.addEventListener('click', () => {
+                func();
+                closeMobileMenusOnSelection();
+            });
         } else {
             console.warn(`Melody button not found: ${id}`);
+        }
+    });
+    
+    // Add mobile menu close functionality to all control buttons
+    document.querySelector('.controls').addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON' && !e.target.classList.contains('tab-button')) {
+            // Small delay to ensure the action completes first
+            setTimeout(closeMobileMenusOnSelection, 100);
         }
     });
 });
