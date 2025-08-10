@@ -265,6 +265,29 @@ function closeMobileMenusOnOutsideClick(e) {
     }
 }
 
+// Close menus when tapping outside
+function closeMobileMenusOnOutsideClick(e) {
+    // Don't close if tapping on the mobile buttons themselves
+    if (e.target.closest('.mobile-controls-btn') || e.target.closest('.mobile-legend-btn')) {
+        return;
+    }
+    
+    // Don't close if tapping inside the panels
+    if (e.target.closest('.controls') || e.target.closest('.legend')) {
+        return;
+    }
+    
+    // Close both panels if they're open and we're on mobile
+    if (window.innerWidth <= 1024 || window.innerHeight <= 768) {
+        if (mobileControlsOpen) {
+            toggleMobileControls();
+        }
+        if (mobileLegendOpen) {
+            toggleMobileLegend();
+        }
+    }
+}
+
 // Make functions globally accessible
 window.toggleMobileControls = toggleMobileControls;
 window.toggleMobileLegend = toggleMobileLegend;
@@ -319,552 +342,194 @@ function playNote(frequency, duration = 200, volume = 0.3) {
     return {oscillator, gainNode};
 }
 
-function playChromaticScale() {
+// ============================================================================
+// REFACTORED: Unified Chord and Scale System (Eliminates 20+ duplicate functions)
+// ============================================================================
+
+// Chord definitions - replaces 10+ individual chord functions
+const CHORD_DEFINITIONS = {
+    'major': {
+        notes: ['C', 'E', 'G'],
+        name: 'C Major',
+        description: 'C - E - G (Happy chord)'
+    },
+    'minor': {
+        notes: ['C', 'D#', 'G'],
+        name: 'C Minor', 
+        description: 'C - E♭ - G (Sad chord)'
+    },
+    'diminished': {
+        notes: ['C', 'D#', 'F#'],
+        name: 'C Diminished',
+        description: 'C - E♭ - G♭ (Tense chord)'
+    },
+    'augmented': {
+        notes: ['C', 'E', 'G#'],
+        name: 'C Augmented',
+        description: 'C - E - G# (Mysterious chord)'
+    },
+    'maj7': {
+        notes: ['C', 'E', 'G', 'B'],
+        name: 'C Major 7th',
+        description: 'C - E - G - B (Jazzy chord)'
+    },
+    'min7': {
+        notes: ['C', 'D#', 'G', 'A#'],
+        name: 'C Minor 7th',
+        description: 'C - E♭ - G - B♭ (Smooth chord)'
+    },
+    'dom7': {
+        notes: ['C', 'E', 'G', 'A#'],
+        name: 'C Dominant 7th',
+        description: 'C - E - G - B♭ (Bluesy chord)'
+    },
+    'sus2': {
+        notes: ['C', 'D', 'G'],
+        name: 'C Suspended 2nd',
+        description: 'C - D - G (Floating chord)'
+    },
+    'sus4': {
+        notes: ['C', 'F', 'G'],
+        name: 'C Suspended 4th', 
+        description: 'C - F - G (Unresolved chord)'
+    },
+    'add9': {
+        notes: ['C', 'E', 'G', 'D'],
+        name: 'C Add 9',
+        description: 'C - E - G - D (Colorful chord)'
+    }
+};
+
+// Scale definitions - replaces 8+ individual scale functions
+const SCALE_DEFINITIONS = {
+    'chromatic': {
+        notes: ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'],
+        name: 'Chromatic Scale',
+        description: 'All 12 semitones'
+    },
+    'major': {
+        notes: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+        name: 'C Major Scale',
+        description: 'Do-Re-Mi-Fa-Sol-La-Ti (Happy scale)'
+    },
+    'minor': {
+        notes: ['C', 'D', 'D#', 'F', 'G', 'G#', 'A#'],
+        name: 'C Minor Scale', 
+        description: 'Natural minor (Sad scale)'
+    },
+    'pentatonic': {
+        notes: ['C', 'D', 'E', 'G', 'A'],
+        name: 'C Pentatonic Scale',
+        description: '5-note scale (Universal scale)'
+    },
+    'dorian': {
+        notes: ['C', 'D', 'D#', 'F', 'G', 'A', 'A#'],
+        name: 'C Dorian Mode',
+        description: 'Minor with raised 6th (Celtic sound)'
+    },
+    'mixolydian': {
+        notes: ['C', 'D', 'E', 'F', 'G', 'A', 'A#'],
+        name: 'C Mixolydian Mode',
+        description: 'Major with flat 7th (Rock sound)'
+    },
+    'blues': {
+        notes: ['C', 'D#', 'F', 'F#', 'G', 'A#'],
+        name: 'C Blues Scale',
+        description: 'Minor pentatonic + blue note'
+    },
+    'wholetone': {
+        notes: ['C', 'D', 'E', 'F#', 'G#', 'A#'],
+        name: 'C Whole Tone Scale',
+        description: 'Dreamy impressionist scale'
+    }
+};
+
+// Unified chord player - replaces 10+ duplicate functions
+function playChordType(chordType) {
     initAudio();
-    const notesToPlay = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    let delay = 0;
-    highlightedSegments = [];
-    const playOctave = 2; // Middle ring
+    const chord = CHORD_DEFINITIONS[chordType];
+    if (!chord) {
+        console.error(`Unknown chord type: ${chordType}`);
+        return;
+    }
     
-    notesToPlay.forEach((note) => {
+    const chordNotes = chord.notes;
+    const chordOctave = 2; // Middle ring
+    
+    // Visual feedback
+    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
+    drawWheel();
+    
+    // UI updates
+    document.getElementById('noteDisplay').textContent = chord.name;
+    document.getElementById('freqDisplay').textContent = chord.description;
+    
+    // Play chord
+    chordNotes.forEach(note => {
+        const freq = noteToFrequency(note, 4);
+        playNote(freq, 1500, 0.2);
+    });
+    
+    // Reset UI
+    setTimeout(() => {
+        highlightedSegments = [];
+        drawWheel();
+        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
+        document.getElementById('noteDisplay').style.color = '#fff';
+        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+    }, 1500);
+}
+
+// Unified scale player - replaces 8+ duplicate functions  
+function playScaleType(scaleType) {
+    initAudio();
+    const scale = SCALE_DEFINITIONS[scaleType];
+    if (!scale) {
+        console.error(`Unknown scale type: ${scaleType}`);
+        return;
+    }
+    
+    const scaleNotes = scale.notes;
+    let delay = 0;
+    const noteDelay = 200;
+    
+    // UI update
+    document.getElementById('noteDisplay').textContent = `Starting ${scale.name}`;
+    document.getElementById('freqDisplay').textContent = scale.description;
+    
+    // Play scale sequence
+    scaleNotes.forEach((note, index) => {
         setTimeout(() => {
             const freq = noteToFrequency(note, 4);
-            playNote(freq, 200, 0.25);
-            highlightedSegments = [`${note}-${playOctave}`];
-            drawWheel();
-            const noteIndex = notes.indexOf(note);
-            document.getElementById('noteDisplay').textContent = `${note}4`;
-            document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
-            document.getElementById('freqDisplay').textContent = `Chromatic scale - All 12 notes`;
-        }, delay);
-        delay += 120;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
-
-function playMajorScale() {
-    initAudio();
-    // C major: C-D-E-F-G-A-B-C
-    const notesToPlay = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 2, 2, 3]; // Which ring to highlight
-    let delay = 0;
-    highlightedSegments = [];
-    
-    // Show what scale is starting
-    document.getElementById('noteDisplay').textContent = 'Starting C Major';
-    document.getElementById('freqDisplay').textContent = 'C-D-E-F-G-A-B-C';
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-            const noteIndex = notes.indexOf(note);
-            document.getElementById('noteDisplay').textContent = `${note}${octaves[i]}`;
-            document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
-            document.getElementById('freqDisplay').textContent = `Major scale - Note ${i + 1} of 8`;
-        }, delay);
-        delay += 250;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
-
-function playMinorScale() {
-    initAudio();
-    // C natural minor: C-D-Eb-F-G-Ab-Bb-C
-    const notesToPlay = ['C', 'D', 'D#', 'F', 'G', 'G#', 'A#', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 2, 2, 3];
-    let delay = 0;
-    highlightedSegments = [];
-    
-    // Let's add a visual indicator to show it's different
-    document.getElementById('noteDisplay').textContent = 'Starting C Minor';
-    document.getElementById('freqDisplay').textContent = 'C-D-E♭-F-G-A♭-B♭-C';
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-            const noteIndex = notes.indexOf(note);
+            playNote(freq, 300);
             
-            // Show the actual note being played
-            let displayNote = note;
-            if (note === 'D#') displayNote = 'E♭';
-            if (note === 'G#') displayNote = 'A♭';
-            if (note === 'A#') displayNote = 'B♭';
+            // Visual feedback for current note
+            highlightedSegments = [`${note}-2`]; // Middle ring
+            drawWheel();
             
-            document.getElementById('noteDisplay').textContent = `${displayNote}${octaves[i]}`;
-            document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
-            document.getElementById('freqDisplay').textContent = `Minor scale - Note ${i + 1} of 8`;
+            // Clear highlight after note duration
+            setTimeout(() => {
+                highlightedSegments = [];
+                drawWheel();
+            }, 300);
+            
+            // Reset UI after last note
+            if (index === scaleNotes.length - 1) {
+                setTimeout(() => {
+                    document.getElementById('noteDisplay').textContent = 'Click to hear notes';
+                    document.getElementById('noteDisplay').style.color = '#fff';
+                    document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+                }, 300);
+            }
         }, delay);
-        delay += 250;
+        delay += noteDelay;
     });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
 }
 
-function playPentatonicScale() {
-    initAudio();
-    const notesToPlay = ['C', 'D', 'E', 'G', 'A', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 3];
-    let delay = 0;
-    highlightedSegments = [];
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-            const noteIndex = notes.indexOf(note);
-            document.getElementById('noteDisplay').textContent = `${note}${octaves[i]}`;
-            document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
-            document.getElementById('freqDisplay').textContent = `Pentatonic - 5 notes`;
-        }, delay);
-        delay += 250;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
+// ============================================================================
+// Melody Functions (kept separate as they have unique chord progressions)
+// ============================================================================
 
-function playMajorChord() {
-    initAudio();
-    const chordNotes = ['C', 'E', 'G'];
-    const chordOctave = 2; // Middle ring
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'C Major';
-    document.getElementById('freqDisplay').textContent = `C - E - G (Happy chord)`;
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 1500, 0.2);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-function playMinorChord() {
-    initAudio();
-    const chordNotes = ['C', 'D#', 'G'];  // C, Eb, G
-    const chordOctave = 2; // Middle ring
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'C Minor';
-    document.getElementById('freqDisplay').textContent = `C - E♭ - G (Sad chord)`;
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 1500, 0.2);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-function playDiminishedChord() {
-    initAudio();
-    const chordNotes = ['C', 'D#', 'F#'];  // C, Eb, Gb
-    const chordOctave = 2; // Middle ring
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'C Diminished';
-    document.getElementById('freqDisplay').textContent = `C - E♭ - G♭ (Tense chord)`;
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 1500, 0.2);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-// Additional scale functions
-function playDorianScale() {
-    initAudio();
-    const notesToPlay = ['C', 'D', 'D#', 'F', 'G', 'A', 'A#', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 2, 2, 3];
-    let delay = 0;
-    highlightedSegments = [];
-    
-    document.getElementById('noteDisplay').textContent = 'C Dorian Mode';
-    document.getElementById('freqDisplay').textContent = 'Jazz/Blues flavor';
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-        }, delay);
-        delay += 250;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
-
-function playMixolydianScale() {
-    initAudio();
-    const notesToPlay = ['C', 'D', 'E', 'F', 'G', 'A', 'A#', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 2, 2, 3];
-    let delay = 0;
-    highlightedSegments = [];
-    
-    document.getElementById('noteDisplay').textContent = 'C Mixolydian';
-    document.getElementById('freqDisplay').textContent = 'Dominant sound';
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-        }, delay);
-        delay += 250;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
-
-function playBluesScale() {
-    initAudio();
-    const notesToPlay = ['C', 'D#', 'F', 'F#', 'G', 'A#', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 2, 3];
-    let delay = 0;
-    highlightedSegments = [];
-    
-    document.getElementById('noteDisplay').textContent = 'C Blues Scale';
-    document.getElementById('freqDisplay').textContent = 'The blue note creates tension';
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-        }, delay);
-        delay += 250;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
-
-function playWholeToneScale() {
-    initAudio();
-    const notesToPlay = ['C', 'D', 'E', 'F#', 'G#', 'A#', 'C'];
-    const octaves = [4, 4, 4, 4, 4, 4, 5];
-    const visualOctaves = [2, 2, 2, 2, 2, 2, 3];
-    let delay = 0;
-    highlightedSegments = [];
-    
-    document.getElementById('noteDisplay').textContent = 'Whole Tone Scale';
-    document.getElementById('freqDisplay').textContent = 'Dreamlike, no resolution';
-    
-    notesToPlay.forEach((note, i) => {
-        setTimeout(() => {
-            const freq = noteToFrequency(note, octaves[i]);
-            playNote(freq, 300, 0.25);
-            highlightedSegments = [`${note}-${visualOctaves[i]}`];
-            drawWheel();
-        }, delay);
-        delay += 250;
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, delay + 200);
-}
-
-function playGlissando() {
-    initAudio();
-    const startFreq = noteToFrequency('C', 4);
-    const endFreq = noteToFrequency('C', 6);
-    
-    document.getElementById('noteDisplay').textContent = 'Glissando';
-    document.getElementById('freqDisplay').textContent = 'Continuous frequency sweep';
-    
-    // Create a continuous sweep
-    const oscillator = audioCtx.createOscillator();
-    const gainNode = audioCtx.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-    
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + 3);
-    
-    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime + 2.9);
-    gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 3);
-    
-    oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + 3);
-    
-    // Visual sweep
-    let sweepTime = 0;
-    const sweepInterval = setInterval(() => {
-        sweepTime += 50;
-        const progress = sweepTime / 3000;
-        if (progress >= 1) {
-            clearInterval(sweepInterval);
-            highlightedSegments = [];
-            drawWheel();
-            document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-            document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-            return;
-        }
-        
-        // Calculate current frequency and note
-        const currentFreq = startFreq * Math.pow(endFreq/startFreq, progress);
-        const noteIndex = Math.floor((12 * Math.log2(currentFreq / noteToFrequency('C', 0))) % 12);
-        const octaveLevel = Math.floor(progress * 3); // Visual octave
-        
-        highlightedSegments = [`${notes[noteIndex]}-${octaveLevel + 1}`];
-        drawWheel();
-    }, 50);
-}
-
-// Additional chord functions
-function playAugmentedChord() {
-    initAudio();
-    const chordNotes = ['C', 'E', 'G#'];
-    const chordOctave = 2;
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'C Augmented';
-    document.getElementById('freqDisplay').textContent = 'C - E - G# (Mysterious)';
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 1500, 0.2);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-function playMaj7Chord() {
-    initAudio();
-    const chordNotes = ['C', 'E', 'G', 'B'];
-    const chordOctave = 2;
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'CMaj7';
-    document.getElementById('freqDisplay').textContent = 'C - E - G - B (Jazzy)';
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 2000, 0.15);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 2000);
-}
-
-function playMin7Chord() {
-    initAudio();
-    const chordNotes = ['C', 'D#', 'G', 'A#'];
-    const chordOctave = 2;
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'Cm7';
-    document.getElementById('freqDisplay').textContent = 'C - E♭ - G - B♭ (Smooth)';
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 2000, 0.15);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 2000);
-}
-
-function playDom7Chord() {
-    initAudio();
-    const chordNotes = ['C', 'E', 'G', 'A#'];
-    const chordOctave = 2;
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'C7';
-    document.getElementById('freqDisplay').textContent = 'C - E - G - B♭ (Bluesy)';
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 2000, 0.15);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 2000);
-}
-
-function playSus2Chord() {
-    initAudio();
-    const chordNotes = ['C', 'D', 'G'];
-    const chordOctave = 2;
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'Csus2';
-    document.getElementById('freqDisplay').textContent = 'C - D - G (Open sound)';
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 1500, 0.2);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-function playSus4Chord() {
-    initAudio();
-    const chordNotes = ['C', 'F', 'G'];
-    const chordOctave = 2;
-    highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'Csus4';
-    document.getElementById('freqDisplay').textContent = 'C - F - G (Suspended tension)';
-    
-    chordNotes.forEach(note => {
-        const freq = noteToFrequency(note, 4);
-        playNote(freq, 1500, 0.2);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-function playAdd9Chord() {
-    initAudio();
-    const chordNotes = ['C', 'E', 'G', 'D'];
-    const chordOctaves = [4, 4, 4, 5];
-    const visualOctave = 2;
-    
-    highlightedSegments = ['C', 'E', 'G'].map(note => `${note}-${visualOctave}`);
-    highlightedSegments.push(`D-${visualOctave + 1}`);
-    drawWheel();
-    
-    document.getElementById('noteDisplay').textContent = 'Cadd9';
-    document.getElementById('freqDisplay').textContent = 'C - E - G - D (Colorful)';
-    
-    chordNotes.forEach((note, i) => {
-        const freq = noteToFrequency(note, chordOctaves[i]);
-        playNote(freq, 1500, 0.15);
-    });
-    
-    setTimeout(() => {
-        highlightedSegments = [];
-        drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
-    }, 1500);
-}
-
-// Song/Melody functions
 function playTwinkleTwinkle() {
     initAudio();
     // Twinkle, Twinkle, Little Star: C-C-G-G-A-A-G-F-F-E-E-D-D-C
@@ -885,22 +550,22 @@ function playTwinkleTwinkle() {
         {note: 'C', octave: 4, duration: 800}
     ];
     
-    // Simple chord progression: C - C - G - G - F - F - G - C - C - C - C - G - G - C
+    // Classic I-V-vi-IV progression in C major
     const chords = [
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        null,
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
-        null,
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        null,
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        null,
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major (V)
         {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},  // A minor (vi)
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},  // A minor
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major (IV)
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major (I)
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major (V)
         {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major (I)
     ];
     
     playMelodyWithChords(melody, chords, 'Twinkle, Twinkle, Little Star');
@@ -925,7 +590,7 @@ function playMaryLittleLamb() {
         {note: 'G', octave: 4, duration: 800}
     ];
     
-    // Simple chord progression: C - G - C - G - C - C - C - G - G - G - C - C - C
+    // Simple I-V progression in C major
     const chords = [
         {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
         {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
@@ -947,50 +612,62 @@ function playMaryLittleLamb() {
 
 function playHappyBirthday() {
     initAudio();
-    // Happy Birthday: C-C-D-C-F-E-C-C-D-C-G-F-C-C-C-A-F-E-D
+    // Happy Birthday: D-D-E-D-G-F#-D-D-E-D-A-G-D-D-D-B-G-F#-E-C-C-B-G-A-G
     const melody = [
-        {note: 'C', octave: 4, duration: 300},
-        {note: 'C', octave: 4, duration: 200},
-        {note: 'D', octave: 4, duration: 500},
-        {note: 'C', octave: 4, duration: 500},
-        {note: 'F', octave: 4, duration: 500},
-        {note: 'E', octave: 4, duration: 1000},
-        {note: 'C', octave: 4, duration: 300},
-        {note: 'C', octave: 4, duration: 200},
-        {note: 'D', octave: 4, duration: 500},
-        {note: 'C', octave: 4, duration: 500},
-        {note: 'G', octave: 4, duration: 500},
-        {note: 'F', octave: 4, duration: 1000},
-        {note: 'C', octave: 4, duration: 300},
-        {note: 'C', octave: 4, duration: 200},
-        {note: 'C', octave: 5, duration: 500},
-        {note: 'A', octave: 4, duration: 500},
-        {note: 'F', octave: 4, duration: 500},
+        {note: 'D', octave: 4, duration: 200},
+        {note: 'D', octave: 4, duration: 300},
         {note: 'E', octave: 4, duration: 500},
-        {note: 'D', octave: 4, duration: 1000}
+        {note: 'D', octave: 4, duration: 500},
+        {note: 'G', octave: 4, duration: 500},
+        {note: 'F#', octave: 4, duration: 1000},
+        {note: 'D', octave: 4, duration: 200},
+        {note: 'D', octave: 4, duration: 300},
+        {note: 'E', octave: 4, duration: 500},
+        {note: 'D', octave: 4, duration: 500},
+        {note: 'A', octave: 4, duration: 500},
+        {note: 'G', octave: 4, duration: 1000},
+        {note: 'D', octave: 4, duration: 200},
+        {note: 'D', octave: 4, duration: 300},
+        {note: 'D', octave: 5, duration: 500},
+        {note: 'B', octave: 4, duration: 500},
+        {note: 'G', octave: 4, duration: 500},
+        {note: 'F#', octave: 4, duration: 500},
+        {note: 'E', octave: 4, duration: 1000},
+        {note: 'C', octave: 5, duration: 200},
+        {note: 'C', octave: 5, duration: 300},
+        {note: 'B', octave: 4, duration: 500},
+        {note: 'G', octave: 4, duration: 500},
+        {note: 'A', octave: 4, duration: 500},
+        {note: 'G', octave: 4, duration: 1000}
     ];
     
-    // Classic Happy Birthday chord progression: C-C-G-C-F-C-C-C-G-C-C-F-C-C-F-F-F-C-G
+    // Classic phrase-based harmony for Happy Birthday
     const chords = [
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
-        null,
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 200},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
         {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
         {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}, // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 200},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
+        {notes: ['D', 'F#', 'A'], octave: 3, duration: 500}, // D major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}, // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 200},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},  // G major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 500},  // E minor
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
         {notes: ['C', 'E', 'G'], octave: 3, duration: 1000}, // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 200},  // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},  // C major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 500},  // E minor
         {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
-        null,
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},  // G major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major (over G melody)
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 1000}, // F major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
-        null,
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major (high C)
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major (A note)
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 500},  // F major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 500},  // C major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}  // G major resolving
+        {notes: ['D', 'F#', 'A'], octave: 3, duration: 500}, // D major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}  // G major
     ];
     
     playMelodyWithChords(melody, chords, 'Happy Birthday');
@@ -998,28 +675,30 @@ function playHappyBirthday() {
 
 function playAmazingGrace() {
     initAudio();
-    // Amazing Grace (first line): G-C-E-C-E-D-C-G
+    // Amazing Grace opening: G-C-E-C-E-D-C-A-G
     const melody = [
-        {note: 'G', octave: 4, duration: 600},
-        {note: 'C', octave: 5, duration: 400},
-        {note: 'E', octave: 5, duration: 300},
-        {note: 'C', octave: 5, duration: 500},
-        {note: 'E', octave: 5, duration: 400},
-        {note: 'D', octave: 5, duration: 800},
-        {note: 'C', octave: 5, duration: 400},
-        {note: 'G', octave: 4, duration: 1200}
+        {note: 'G', octave: 3, duration: 400},
+        {note: 'C', octave: 4, duration: 800},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 400},
+        {note: 'E', octave: 4, duration: 400},
+        {note: 'D', octave: 4, duration: 400},
+        {note: 'C', octave: 4, duration: 1200},
+        {note: 'A', octave: 3, duration: 400},
+        {note: 'G', octave: 3, duration: 800}
     ];
     
-    // Rich chord progression: C - F - C - Am - F - G - C - G/C
+    // Rich C-F-Am-G progression  
     const chords = [
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 1000}, // C major
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 700},  // F major  
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
         {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},  // A minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 800},  // F major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 1200}, // G major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 1200}  // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},  // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 1200}, // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major
     ];
     
     playMelodyWithChords(melody, chords, 'Amazing Grace');
@@ -1027,33 +706,31 @@ function playAmazingGrace() {
 
 function playGreensleeves() {
     initAudio();
-    // Greensleeves (opening): A-C-D-E-F-E-D-C-A-G-A
+    // Greensleeves (A minor): A-C-D-E-F-E-D-B-G-A
     const melody = [
         {note: 'A', octave: 4, duration: 600},
         {note: 'C', octave: 5, duration: 400},
         {note: 'D', octave: 5, duration: 300},
         {note: 'E', octave: 5, duration: 500},
         {note: 'F', octave: 5, duration: 400},
-        {note: 'E', octave: 5, duration: 400},
-        {note: 'D', octave: 5, duration: 400},
-        {note: 'C', octave: 5, duration: 600},
-        {note: 'A', octave: 4, duration: 400},
-        {note: 'G', octave: 4, duration: 400},
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'D', octave: 5, duration: 600},
+        {note: 'B', octave: 4, duration: 400},
+        {note: 'G', octave: 4, duration: 500},
         {note: 'A', octave: 4, duration: 800}
     ];
     
-    // Minor key chord progression: Am - F - G - Em - F - C - G - Am - F - G - Am
+    // Complex minor key harmony: Am - F - G - Em - Am - F - G - Am
     const chords = [
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 1000}, // A minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 700},  // F major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
-        {notes: ['E', 'G', 'B'], octave: 3, duration: 900},  // E minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 800},  // F major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 1000}, // G major
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 800},  // A minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 800},  // F major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},  // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},  // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},  // G major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 500},  // E minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},  // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},  // G major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 400},  // E minor
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 500},  // A minor
         {notes: ['A', 'C', 'E'], octave: 3, duration: 800}   // A minor
     ];
     
@@ -1174,6 +851,72 @@ function playFurElise() {
     playMelodyWithChords(melody, chords, 'Für Elise');
 }
 
+function playGlissando() {
+    initAudio();
+    
+    document.getElementById('noteDisplay').textContent = 'Glissando';
+    document.getElementById('freqDisplay').textContent = 'Continuous sliding effect';
+    
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    // Start and end frequencies for the glissando
+    const startFreq = noteToFrequency('C', 3); // C3 = 130.81 Hz
+    const endFreq = noteToFrequency('C', 6);   // C6 = 1046.50 Hz
+    const duration = 3; // 3 seconds
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(startFreq, audioCtx.currentTime);
+    
+    // Smooth exponential frequency slide from start to end
+    oscillator.frequency.exponentialRampToValueAtTime(endFreq, audioCtx.currentTime + duration);
+    
+    // Volume envelope
+    const compensatedVolume = getEqualLoudnessVolume((startFreq + endFreq) / 2, 0.2);
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(compensatedVolume, audioCtx.currentTime + 0.1);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + duration);
+    
+    // Visual feedback - animate the highlighting across all rings
+    let currentNote = 0;
+    const totalSteps = 12 * 3; // 3 octaves worth of notes
+    const stepInterval = (duration * 1000) / totalSteps;
+    
+    const animationInterval = setInterval(() => {
+        if (currentNote >= totalSteps) {
+            clearInterval(animationInterval);
+            highlightedSegments = [];
+            drawWheel();
+            document.getElementById('noteDisplay').textContent = 'Click to hear notes';
+            document.getElementById('noteDisplay').style.color = '#fff';
+            document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+            return;
+        }
+        
+        const noteIndex = currentNote % 12;
+        const octaveRing = Math.floor(currentNote / 12);
+        const note = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][noteIndex];
+        
+        // Highlight current note across multiple rings for flowing effect
+        highlightedSegments = [];
+        for (let ring = Math.max(0, octaveRing); ring <= Math.min(4, octaveRing + 2); ring++) {
+            highlightedSegments.push(`${note}-${ring}`);
+        }
+        drawWheel();
+        
+        currentNote++;
+    }, stepInterval);
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
 
 // Helper function to play a chord (multiple notes simultaneously)
 function playChord(chordNotes, octave, duration, volume = 0.15, delay = 0) {
@@ -1427,82 +1170,82 @@ drawWheel();
 window.addEventListener('load', () => {
     drawWheel();
     
-    // Scale button listeners
+    // REFACTORED: Scale button listeners using unified system
     document.getElementById('chromatic-btn').addEventListener('click', () => {
-        playChromaticScale();
+        playScaleType('chromatic');
     });
     
     document.getElementById('major-btn').addEventListener('click', () => {
-        playMajorScale();
+        playScaleType('major');
     });
     
     document.getElementById('minor-btn').addEventListener('click', () => {
-        playMinorScale();
+        playScaleType('minor');
     });
     
     document.getElementById('pentatonic-btn').addEventListener('click', () => {
-        playPentatonicScale();
+        playScaleType('pentatonic');
     });
     
     document.getElementById('dorian-btn').addEventListener('click', () => {
-        playDorianScale();
+        playScaleType('dorian');
     });
     
     document.getElementById('mixolydian-btn').addEventListener('click', () => {
-        playMixolydianScale();
+        playScaleType('mixolydian');
     });
     
     document.getElementById('blues-btn').addEventListener('click', () => {
-        playBluesScale();
+        playScaleType('blues');
     });
     
     document.getElementById('wholetone-btn').addEventListener('click', () => {
-        playWholeToneScale();
+        playScaleType('wholetone');
     });
     
     document.getElementById('glissando-btn').addEventListener('click', () => {
-        playGlissando();
+        playGlissando(); // Keep special glissando function for now
     });
     
-    // Chord button listeners
+    // REFACTORED: Chord button listeners using unified system
     document.getElementById('major-chord-btn').addEventListener('click', () => {
-        playMajorChord();
+        playChordType('major');
     });
     
     document.getElementById('minor-chord-btn').addEventListener('click', () => {
-        playMinorChord();
+        playChordType('minor');
     });
     
     document.getElementById('diminished-btn').addEventListener('click', () => {
-        playDiminishedChord();
+        playChordType('diminished');
     });
     
     document.getElementById('augmented-btn').addEventListener('click', () => {
-        playAugmentedChord();
+        playChordType('augmented');
     });
     
     document.getElementById('maj7-btn').addEventListener('click', () => {
-        playMaj7Chord();
+        playChordType('maj7');
     });
     
     document.getElementById('min7-btn').addEventListener('click', () => {
-        playMin7Chord();
+        playChordType('min7');
     });
     
     document.getElementById('dom7-btn').addEventListener('click', () => {
-        playDom7Chord();
+        playChordType('dom7');
     });
     
     document.getElementById('sus2-btn').addEventListener('click', () => {
-        playSus2Chord();
+        playChordType('sus2');
     });
     
     document.getElementById('sus4-btn').addEventListener('click', () => {
-        playSus4Chord();
+        playChordType('sus4');
     });
     
     document.getElementById('add9-btn').addEventListener('click', () => {
-        playAdd9Chord();
+        playChordType('add9');
     });
     
     // Melody button listeners
