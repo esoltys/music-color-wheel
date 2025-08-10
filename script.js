@@ -202,35 +202,49 @@ function showTab(tabName) {
 window.showTab = showTab;
 
 // Mobile menu functionality
-let mobileMenuOpen = false;
+let mobileControlsOpen = false;
+let mobileLegendOpen = false;
 
-function toggleMobileMenus() {
-    const menuBtn = document.getElementById('mobileMenuBtn');
+function toggleMobileControls() {
+    const controlsBtn = document.getElementById('mobileControlsBtn');
     const controls = document.querySelector('.controls');
+    
+    mobileControlsOpen = !mobileControlsOpen;
+    
+    if (mobileControlsOpen) {
+        controlsBtn.classList.add('active');
+        controls.classList.add('mobile-open');
+    } else {
+        controlsBtn.classList.remove('active');
+        controls.classList.remove('mobile-open');
+    }
+}
+
+function toggleMobileLegend() {
+    const legendBtn = document.getElementById('mobileLegendBtn');
     const legend = document.querySelector('.legend');
     
-    mobileMenuOpen = !mobileMenuOpen;
+    mobileLegendOpen = !mobileLegendOpen;
     
-    if (mobileMenuOpen) {
-        menuBtn.classList.add('active');
-        controls.classList.add('mobile-open');
+    if (mobileLegendOpen) {
+        legendBtn.classList.add('active');
         legend.classList.add('mobile-open');
     } else {
-        menuBtn.classList.remove('active');
-        controls.classList.remove('mobile-open');
+        legendBtn.classList.remove('active');
         legend.classList.remove('mobile-open');
     }
 }
 
-// Close mobile menus when a control is selected
-function closeMobileMenusOnSelection() {
-    if ((window.innerWidth <= 1024 || window.innerHeight <= 768) && mobileMenuOpen) {
-        toggleMobileMenus();
+// Close mobile controls when a control is selected
+function closeMobileControlsOnSelection() {
+    if ((window.innerWidth <= 1024 || window.innerHeight <= 768) && mobileControlsOpen) {
+        toggleMobileControls();
     }
 }
 
 // Make functions globally accessible
-window.toggleMobileMenus = toggleMobileMenus;
+window.toggleMobileControls = toggleMobileControls;
+window.toggleMobileLegend = toggleMobileLegend;
 
 function initAudio() {
     if (!audioCtx) {
@@ -1358,7 +1372,7 @@ window.addEventListener('load', () => {
         if (button) {
             button.addEventListener('click', () => {
                 func();
-                closeMobileMenusOnSelection();
+                closeMobileControlsOnSelection();
             });
         } else {
             console.warn(`Melody button not found: ${id}`);
@@ -1369,7 +1383,7 @@ window.addEventListener('load', () => {
     document.querySelector('.controls').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON' && !e.target.classList.contains('tab-button')) {
             // Small delay to ensure the action completes first
-            setTimeout(closeMobileMenusOnSelection, 100);
+            setTimeout(closeMobileControlsOnSelection, 100);
         }
     });
 });
