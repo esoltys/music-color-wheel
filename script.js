@@ -275,6 +275,26 @@ function initAudio() {
     }
 }
 
+// Equal loudness compensation based on A-weighting curve
+function getEqualLoudnessVolume(frequency, baseVolume = 0.3) {
+    // Simplified A-weighting approximation for equal loudness
+    // Peak sensitivity around 1000-4000 Hz, reduced at very low and very high frequencies
+    const f = frequency;
+    const f2 = f * f;
+    const f4 = f2 * f2;
+    
+    // A-weighting approximation (simplified)
+    const numerator = 12194 * 12194 * f4;
+    const denominator = (f2 + 20.6 * 20.6) * Math.sqrt((f2 + 107.7 * 107.7) * (f2 + 737.9 * 737.9)) * (f2 + 12194 * 12194);
+    const aWeight = numerator / denominator;
+    
+    // Convert to linear scale and normalize (1000 Hz = reference)
+    const referenceWeight = 0.5; // Approximation for 1000 Hz
+    const compensation = Math.min(2.0, Math.max(0.3, referenceWeight / aWeight));
+    
+    return baseVolume * compensation;
+}
+
 function playNote(frequency, duration = 200, volume = 0.3) {
     initAudio();
     const oscillator = audioCtx.createOscillator();
@@ -286,8 +306,11 @@ function playNote(frequency, duration = 200, volume = 0.3) {
     oscillator.frequency.value = frequency;
     oscillator.type = 'sine';
     
+    // Apply equal loudness compensation
+    const compensatedVolume = getEqualLoudnessVolume(frequency, volume);
+    
     gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 0.01);
+    gainNode.gain.linearRampToValueAtTime(compensatedVolume, audioCtx.currentTime + 0.01);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration / 1000);
     
     oscillator.start(audioCtx.currentTime);
