@@ -1103,6 +1103,77 @@ function playOdeToJoy() {
     playMelodyWithChords(melody, chords, 'Ode to Joy');
 }
 
+function playFurElise() {
+    initAudio();
+    // Für Elise (Beethoven) opening theme: E-D#-E-D#-E-B-D-C-A
+    const melody = [
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'D#', octave: 5, duration: 300},
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'D#', octave: 5, duration: 300},
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'B', octave: 4, duration: 300},
+        {note: 'D', octave: 5, duration: 300},
+        {note: 'C', octave: 5, duration: 300},
+        {note: 'A', octave: 4, duration: 600},
+        // Second phrase: C-E-A-B
+        {note: 'C', octave: 4, duration: 300},
+        {note: 'E', octave: 4, duration: 300},
+        {note: 'A', octave: 4, duration: 300},
+        {note: 'B', octave: 4, duration: 600},
+        // Third phrase: E-G#-B-C
+        {note: 'E', octave: 4, duration: 300},
+        {note: 'G#', octave: 4, duration: 300},
+        {note: 'B', octave: 4, duration: 300},
+        {note: 'C', octave: 5, duration: 600},
+        // Return to main theme: E-D#-E-D#-E-B-D-C-A
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'D#', octave: 5, duration: 300},
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'D#', octave: 5, duration: 300},
+        {note: 'E', octave: 5, duration: 300},
+        {note: 'B', octave: 4, duration: 300},
+        {note: 'D', octave: 5, duration: 300},
+        {note: 'C', octave: 5, duration: 300},
+        {note: 'A', octave: 4, duration: 800}
+    ];
+    
+    // Romantic period chord progression in A minor: Am - E7 - Am - F - C - G - Am - E7 - Am
+    const chords = [
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major (dominant)
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 300},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},  // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},  // A minor
+        // Second phrase
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 300},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},  // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 600}, // E major
+        // Third phrase
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},  // A minor
+        // Return to main theme
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},  // A minor
+        {notes: ['E', 'G#', 'B'], octave: 3, duration: 300}, // E major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 300},  // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},  // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 800}   // A minor
+    ];
+    
+    playMelodyWithChords(melody, chords, 'Für Elise');
+}
+
 
 // Helper function to play a chord (multiple notes simultaneously)
 function playChord(chordNotes, octave, duration, volume = 0.15, delay = 0) {
@@ -1441,7 +1512,8 @@ window.addEventListener('load', () => {
         { id: 'happy-birthday-btn', func: playHappyBirthday },
         { id: 'amazing-grace-btn', func: playAmazingGrace },
         { id: 'greensleeves-btn', func: playGreensleeves },
-        { id: 'ode-to-joy-btn', func: playOdeToJoy }
+        { id: 'ode-to-joy-btn', func: playOdeToJoy },
+        { id: 'fur-elise-btn', func: playFurElise }
     ];
     
     melodyButtons.forEach(({ id, func }) => {
