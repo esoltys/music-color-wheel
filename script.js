@@ -1166,36 +1166,24 @@ window.addEventListener('load', () => {
     });
     
     // Melody button listeners
-    document.getElementById('twinkle-btn').addEventListener('click', () => {
-        playTwinkleTwinkle();
-    });
+    const melodyButtons = [
+        { id: 'twinkle-btn', func: playTwinkleTwinkle },
+        { id: 'mary-lamb-btn', func: playMaryLittleLamb },
+        { id: 'happy-birthday-btn', func: playHappyBirthday },
+        { id: 'amazing-grace-btn', func: playAmazingGrace },
+        { id: 'greensleeves-btn', func: playGreensleeves },
+        { id: 'ode-to-joy-btn', func: playOdeToJoy },
+        { id: 'jingle-bells-btn', func: playJingleBells },
+        { id: 'silent-night-btn', func: playSilentNight }
+    ];
     
-    document.getElementById('mary-lamb-btn').addEventListener('click', () => {
-        playMaryLittleLamb();
-    });
-    
-    document.getElementById('happy-birthday-btn').addEventListener('click', () => {
-        playHappyBirthday();
-    });
-    
-    document.getElementById('amazing-grace-btn').addEventListener('click', () => {
-        playAmazingGrace();
-    });
-    
-    document.getElementById('greensleeves-btn').addEventListener('click', () => {
-        playGreensleeves();
-    });
-    
-    document.getElementById('ode-to-joy-btn').addEventListener('click', () => {
-        playOdeToJoy();
-    });
-    
-    document.getElementById('jingle-bells-btn').addEventListener('click', () => {
-        playJingleBells();
-    });
-    
-    document.getElementById('silent-night-btn').addEventListener('click', () => {
-        playSilentNight();
+    melodyButtons.forEach(({ id, func }) => {
+        const button = document.getElementById(id);
+        if (button) {
+            button.addEventListener('click', func);
+        } else {
+            console.warn(`Melody button not found: ${id}`);
+        }
     });
 });
 
