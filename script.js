@@ -132,6 +132,47 @@ function blendChordColors() {
     return { hue: h, saturation: s, lightness: l };
 }
 
+// Utility function to convert event coordinates to canvas position
+function getCanvasPosition(e) {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left) * (canvas.width / rect.width) - centerX;
+    const y = (clientY - rect.top) * (canvas.height / rect.height) - centerY;
+    
+    return { x, y };
+}
+
+// Utility function to get note data from canvas coordinates
+function getNoteFromPosition(x, y) {
+    const distance = Math.sqrt(x * x + y * y);
+    let angle = Math.atan2(y, x) + Math.PI / 2;
+    if (angle < 0) angle += Math.PI * 2;
+    
+    const centerRadius = maxRadius * 0.2;
+    
+    if (distance <= maxRadius && distance >= centerRadius) {
+        const adjustedDistance = distance - centerRadius;
+        const availableRadius = maxRadius - centerRadius;
+        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
+        const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
+        const note = notes[noteIndex];
+        const audioOctave = octave + 3;
+        
+        return { note, octave, audioOctave, noteIndex };
+    }
+    
+    return null;
+}
+
+// Utility function to update display elements
+function updateDisplayElements(noteText, noteColor, freqText) {
+    document.getElementById('noteDisplay').textContent = noteText;
+    document.getElementById('noteDisplay').style.color = noteColor || '#fff';
+    document.getElementById('freqDisplay').textContent = freqText;
+}
+
 // Extract chord notes from highlighted segments (with repetition for proper weighting)
 function getCurrentChordNotes() {
     if (highlightedSegments.length === 0) return [];
@@ -1479,54 +1520,36 @@ function playMelody(melody, title) {
 
 // Mouse interaction
 canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width) - centerX;
-    const y = (e.clientY - rect.top) * (canvas.height / rect.height) - centerY;
+    const { x, y } = getCanvasPosition(e);
+    const noteData = getNoteFromPosition(x, y);
     
-    const distance = Math.sqrt(x * x + y * y);
-    let angle = Math.atan2(y, x) + Math.PI / 2;
-    if (angle < 0) angle += Math.PI * 2;
-    
-    const centerRadius = maxRadius * 0.2; // Match drawWheel center
-    
-    if (distance <= maxRadius && distance >= centerRadius) {
-        const adjustedDistance = distance - centerRadius;
-        const availableRadius = maxRadius - centerRadius;
-        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
-        const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
+    if (noteData) {
+        const { note, octave, audioOctave, noteIndex } = noteData;
         
-        hoveredNote = notes[noteIndex];
+        hoveredNote = note;
         hoveredOctave = octave;
         
-        // Map visual octave to audio octave - shifted for audibility
-        // Ring 0 (innermost) = Octave 3
-        // Ring 1 = Octave 4
-        // Ring 2 (middle) = Octave 5
-        // Ring 3 = Octave 6
-        // Ring 4 (outermost) = Octave 7
-        const audioOctave = octave + 3;
-        const freq = noteToFrequency(hoveredNote, audioOctave);
+        const freq = noteToFrequency(note, audioOctave);
         
-        document.getElementById('noteDisplay').textContent = `${hoveredNote}${audioOctave}`;
-        document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(noteIndex)}, 70%, 60%)`;
-        document.getElementById('freqDisplay').textContent = `${freq.toFixed(1)} Hz`;
+        updateDisplayElements(
+            `${note}${audioOctave}`,
+            `hsl(${noteToHue(noteIndex)}, 70%, 60%)`,
+            `${freq.toFixed(1)} Hz`
+        );
         
         drawWheel();
     } else {
         hoveredNote = null;
         hoveredOctave = null;
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+        updateDisplayElements('Click to hear notes', '#fff', 'Hover over the wheel');
         drawWheel();
     }
 });
 
 // Multi-touch chord detection system
-let activeTouches = new Map(); // touchId -> {note, octave, x, y}
+let activeTouches = new Map(); // touchId -> {note, octave, audioOctave, x, y}
 let lastSingleTouchTime = 0;
 const TOUCH_DEBOUNCE_MS = 150;
-const MULTI_TOUCH_DELAY_MS = 200; // Wait for additional touches
 
 function handleCanvasTouch(e) {
     // Prevent default touch behavior
@@ -1550,29 +1573,11 @@ function handleCanvasTouch(e) {
 }
 
 function handleSingleTouch(e) {
-    // Handle both touch and mouse coordinates
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const { x, y } = getCanvasPosition(e);
+    const noteData = getNoteFromPosition(x, y);
     
-    const rect = canvas.getBoundingClientRect();
-    const x = (clientX - rect.left) * (canvas.width / rect.width) - centerX;
-    const y = (clientY - rect.top) * (canvas.height / rect.height) - centerY;
-    
-    const distance = Math.sqrt(x * x + y * y);
-    let angle = Math.atan2(y, x) + Math.PI / 2;
-    if (angle < 0) angle += Math.PI * 2;
-    
-    const centerRadius = maxRadius * 0.2; // Match drawWheel center
-    
-    if (distance <= maxRadius && distance >= centerRadius) {
-        const adjustedDistance = distance - centerRadius;
-        const availableRadius = maxRadius - centerRadius;
-        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
-        const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
-        const note = notes[noteIndex];
-        
-        // Map visual octave to audio octave
-        const audioOctave = octave + 3;
+    if (noteData) {
+        const { note, octave, audioOctave, noteIndex } = noteData;
         
         const freq = noteToFrequency(note, audioOctave);
         playNote(freq, 500, 0.3);
@@ -1582,15 +1587,16 @@ function handleSingleTouch(e) {
         drawWheel();
         
         // Update display
-        document.getElementById('noteDisplay').textContent = `${note}${audioOctave}`;
-        const displayNoteIndex = notes.indexOf(note);
-        document.getElementById('noteDisplay').style.color = `hsl(${noteToHue(displayNoteIndex)}, 70%, 60%)`;
-        document.getElementById('freqDisplay').textContent = `${freq.toFixed(1)} Hz - Click heard`;
+        updateDisplayElements(
+            `${note}${audioOctave}`,
+            `hsl(${noteToHue(noteIndex)}, 70%, 60%)`,
+            `${freq.toFixed(1)} Hz - Click heard`
+        );
         
         setTimeout(() => {
             highlightedSegments = [];
             drawWheel();
-            document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+            updateDisplayElements('Click to hear notes', '#fff', 'Hover over the wheel');
         }, 500);
     }
 }
@@ -1619,21 +1625,9 @@ function getTouchNoteData(touch) {
     const x = (touch.clientX - rect.left) * (canvas.width / rect.width) - centerX;
     const y = (touch.clientY - rect.top) * (canvas.height / rect.height) - centerY;
     
-    const distance = Math.sqrt(x * x + y * y);
-    let angle = Math.atan2(y, x) + Math.PI / 2;
-    if (angle < 0) angle += Math.PI * 2;
-    
-    const centerRadius = maxRadius * 0.2;
-    
-    if (distance <= maxRadius && distance >= centerRadius) {
-        const adjustedDistance = distance - centerRadius;
-        const availableRadius = maxRadius - centerRadius;
-        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
-        const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
-        const note = notes[noteIndex];
-        const audioOctave = octave + 3;
-        
-        return { note, octave, audioOctave, x, y };
+    const noteData = getNoteFromPosition(x, y);
+    if (noteData) {
+        return { ...noteData, x, y }; // Include original x,y for potential future use
     }
     
     return null;
@@ -1681,9 +1675,7 @@ function handleMultiTouchEnd(e) {
         // Clear all highlights and reset display when no touches remain
         highlightedSegments = [];
         drawWheel();
-        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
-        document.getElementById('noteDisplay').style.color = '#fff';
-        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+        updateDisplayElements('Click to hear notes', '#fff', 'Hover over the wheel');
     }
 }
 
