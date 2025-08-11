@@ -305,13 +305,27 @@ button.active {
         position: fixed;
         left: -100%;
         top: 0;
-        width: min(320px, 80vw);
+        width: 100vw;
         height: 100vh;
         max-height: 100vh;
         transform: none;
         transition: left 0.3s ease;
-        padding: 80px 20px 20px;
+        padding: 80px 20px 0;
         z-index: 15;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .control-tabs {
+        flex-shrink: 0;
+        margin-bottom: 15px;
+    }
+    
+    .control-group {
+        flex: 1;
+        overflow-y: auto;
+        padding-bottom: 20px;
     }
     
     .controls.mobile-open {
@@ -321,17 +335,19 @@ button.active {
     .legend {
         position: fixed;
         right: -100%;
-        top: 80px;
-        width: min(250px, 35vw);
-        height: auto;
-        max-height: calc(100vh - 100px);
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
         overflow-y: auto;
         transition: right 0.3s ease;
         z-index: 15;
+        padding: 80px 20px 20px;
+        box-sizing: border-box;
     }
     
     .legend.mobile-open {
-        right: 20px;
+        right: 0;
     }
     
     #canvas {
@@ -340,7 +356,7 @@ button.active {
     }
     
     .info {
-        top: 80px;
+        top: 20px;
         left: 50%;
         transform: translateX(-50%);
         width: auto;
