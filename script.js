@@ -56,10 +56,99 @@ function noteToHue(noteIndex) {
     return hueMap[noteIndex];
 }
 
+// Convert HSL to RGB for blending calculations
+function hslToRgb(h, s, l) {
+    h = h / 360;
+    s = s / 100;
+    l = l / 100;
+    
+    const a = s * Math.min(l, 1 - l);
+    const f = (n, k = (n + h * 12) % 12) => l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    
+    return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+}
+
+// Convert RGB back to HSL
+function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+    const sum = max + min;
+    const l = sum / 2;
+    
+    if (diff === 0) return [0, 0, Math.round(l * 100)];
+    
+    const s = l > 0.5 ? diff / (2 - sum) : diff / sum;
+    
+    let h;
+    switch (max) {
+        case r: h = ((g - b) / diff + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / diff + 2) / 6; break;
+        case b: h = ((r - g) / diff + 4) / 6; break;
+    }
+    
+    return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}
+
+// Blend multiple note colors for chord visualization using actual segment colors
+function blendChordColors() {
+    if (highlightedSegments.length === 0) return null;
+    
+    let totalR = 0, totalG = 0, totalB = 0, totalWeight = 0;
+    
+    highlightedSegments.forEach(segment => {
+        const [note, octaveRing] = segment.split('-');
+        const noteIndex = notes.indexOf(note);
+        if (noteIndex === -1) return;
+        
+        // Use same color calculation as the actual wheel segments
+        const hue = noteToHue(noteIndex);
+        
+        // Calculate frequency-based brightness (same as drawWheel)
+        const audioOctave = Number(octaveRing) + 3;
+        const frequency = noteToFrequency(note, audioOctave);
+        const minFreq = 130; // C3 (~130Hz) - darkest
+        const maxFreq = 1047; // C6 (~1047Hz) - brightest
+        const freqRatio = Math.log(frequency / minFreq) / Math.log(maxFreq / minFreq);
+        const lightness = 25 + Math.pow(freqRatio, 0.8) * 55; // Match wheel calculation
+        
+        const saturation = 70; // Match the main wheel saturation
+        
+        const [r, g, b] = hslToRgb(hue, saturation, lightness);
+        
+        totalR += r;
+        totalG += g;
+        totalB += b;
+        totalWeight += 1;
+    });
+    
+    const avgR = totalR / totalWeight;
+    const avgG = totalG / totalWeight;
+    const avgB = totalB / totalWeight;
+    
+    const [h, s, l] = rgbToHsl(avgR, avgG, avgB);
+    return { hue: h, saturation: s, lightness: l };
+}
+
+// Extract chord notes from highlighted segments (with repetition for proper weighting)
+function getCurrentChordNotes() {
+    if (highlightedSegments.length === 0) return [];
+    
+    const chordNotes = [];
+    highlightedSegments.forEach(segment => {
+        const [note, octave] = segment.split('-');
+        chordNotes.push(note);
+    });
+    
+    return chordNotes;
+}
+
 function drawWheel() {
     ctx.clearRect(0, 0, size, size);
     
-    const centerRadius = maxRadius * 0.2; // Empty center for future chord blending
+    const centerRadius = maxRadius * 0.2; // Center for chord blending
     const availableRadius = maxRadius - centerRadius;
     const ringWidth = availableRadius / octaves;
     
@@ -154,14 +243,42 @@ function drawWheel() {
         ctx.restore();
     }
     
-    // Add center glow - ensure radius is always positive
-    if (maxRadius > 0) {
-        const glowRadius = Math.max(10, ringWidth);
-        const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.3)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, size, size);
+    // Draw chord blending in center circle
+    if (highlightedSegments.length > 0) {
+        // Blend chord colors and draw in center
+        const blendedColor = blendChordColors();
+        if (blendedColor) {
+            // Draw the blended chord color as a solid circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, centerRadius * 0.85, 0, 2 * Math.PI);
+            ctx.fillStyle = `hsl(${blendedColor.hue}, ${blendedColor.saturation}%, ${blendedColor.lightness}%)`;
+            ctx.fill();
+            
+            // Add a subtle border
+            ctx.strokeStyle = `hsl(${blendedColor.hue}, ${blendedColor.saturation}%, 90%)`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Add a subtle glow effect
+            const glowRadius = centerRadius * 1.2;
+            const gradient = ctx.createRadialGradient(centerX, centerY, centerRadius * 0.85, centerX, centerY, glowRadius);
+            gradient.addColorStop(0, `hsla(${blendedColor.hue}, ${blendedColor.saturation}%, ${blendedColor.lightness}%, 0)`);
+            gradient.addColorStop(1, `hsla(${blendedColor.hue}, ${blendedColor.saturation}%, ${Math.min(80, blendedColor.lightness + 20)}%, 0.2)`);
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, glowRadius, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+    } else {
+        // Add subtle center glow when no chord is playing
+        if (maxRadius > 0) {
+            const glowRadius = Math.max(10, ringWidth);
+            const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+        }
     }
 }
 
