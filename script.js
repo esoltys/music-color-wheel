@@ -73,65 +73,45 @@ function drawWheel() {
             const segmentKey = `${notes[i]}-${octave}`;
             const isHighlighted = highlightedSegments.includes(segmentKey);
             
-            // Draw glow effect for highlighted segments
-            if (isHighlighted) {
-                ctx.save();
-                
-                // Create multiple glow layers
-                for (let glow = 3; glow > 0; glow--) {
-                    const glowInner = Math.max(0, baseInnerRadius - glow * 3);
-                    const glowOuter = baseOuterRadius + glow * 3;
-                    
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, glowInner, startAngle, endAngle);
-                    ctx.arc(centerX, centerY, glowOuter, endAngle, startAngle, true);
-                    ctx.closePath();
-                    
-                    const hue = noteToHue(i);
-                    ctx.shadowBlur = 20;
-                    ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-                    ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${0.1 * (4 - glow)})`;
-                    ctx.fill();
-                }
-                
-                ctx.restore();
-            }
             
             ctx.beginPath();
             ctx.arc(centerX, centerY, baseInnerRadius, startAngle, endAngle);
             ctx.arc(centerX, centerY, baseOuterRadius, endAngle, startAngle, true);
             ctx.closePath();
             
-            // Color based on note with brightness based on octave
+            // Color based on note with frequency-based brightness
             const hue = noteToHue(i);
-            const lightness = 20 + (octave / octaves) * 50; // Inner darker, outer lighter
+            
+            // Calculate actual frequency for this note and octave
+            // Visual octaves 0-4 map to audio octaves 3-7
+            const audioOctave = octave + 3;
+            const frequency = noteToFrequency(notes[i], audioOctave);
+            
+            // Map frequency to brightness (human hearing range ~20Hz to 20kHz)
+            // Lower frequencies = darker, higher frequencies = brighter
+            const minFreq = 130; // C3 (~130Hz) - darkest
+            const maxFreq = 4186; // C8 (~4186Hz) - brightest
+            const freqRatio = Math.log(frequency / minFreq) / Math.log(maxFreq / minFreq);
+            const lightness = 25 + Math.pow(freqRatio, 0.8) * 55; // Gentle curve, 25-80% range
+            
             let saturation = 70;
             let brightness = lightness;
             
-            // Highlight logic
-            if (hoveredNote === notes[i] && hoveredOctave === octave) {
-                saturation = 100;
-                brightness = Math.min(80, lightness + 20);
-            } else if (isHighlighted) {
-                saturation = 100;
-                brightness = Math.min(80, lightness + 30);
-                
-                // Add inner glow
-                ctx.save();
-                ctx.shadowBlur = 15;
-                ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
-            }
+            // Keep natural colors for all states - no color changes for hover or playing
+            // (Border effects will handle visual feedback)
             
             ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${brightness}%)`;
             ctx.fill();
             
+            // Border effects for visual feedback
             if (isHighlighted) {
-                ctx.restore();
-                
-                // Add bright border for highlighted segments
-                ctx.strokeStyle = `hsla(${hue}, 100%, 80%, 0.8)`;
+                // Add prominent border for playing notes
+                ctx.strokeStyle = `hsl(${hue}, 100%, 90%)`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            } else if (hoveredNote === notes[i] && hoveredOctave === octave) {
+                // Add medium border for hovered notes
+                ctx.strokeStyle = `hsl(${hue}, 80%, 80%)`;
                 ctx.lineWidth = 2;
                 ctx.stroke();
             } else {
@@ -512,6 +492,8 @@ function playScaleType(scaleType) {
             // Reset UI after last note
             if (index === scaleNotes.length - 1) {
                 setTimeout(() => {
+                    highlightedSegments = [];
+                    drawWheel();
                     document.getElementById('noteDisplay').textContent = 'Click to hear notes';
                     document.getElementById('noteDisplay').style.color = '#fff';
                     document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
