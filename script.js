@@ -16,7 +16,7 @@ let maxRadius = size / 2 - 10;
 
 // Musical notes in chromatic scale
 const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const octaves = 5; // Number of octaves (rings)
+const octaves = 4; // Number of octaves (rings) - octaves 3-6, center empty
 
 let hoveredNote = null;
 let hoveredOctave = null;
@@ -59,11 +59,13 @@ function noteToHue(noteIndex) {
 function drawWheel() {
     ctx.clearRect(0, 0, size, size);
     
-    const ringWidth = maxRadius / octaves;
+    const centerRadius = maxRadius * 0.2; // Empty center for future chord blending
+    const availableRadius = maxRadius - centerRadius;
+    const ringWidth = availableRadius / octaves;
     
     for (let octave = 0; octave < octaves; octave++) {
-        const baseInnerRadius = Math.max(0, octave * ringWidth);
-        const baseOuterRadius = Math.max(baseInnerRadius + 1, (octave + 1) * ringWidth);
+        const baseInnerRadius = centerRadius + octave * ringWidth;
+        const baseOuterRadius = centerRadius + (octave + 1) * ringWidth;
         
         for (let i = 0; i < notes.length; i++) {
             const startAngle = (i / notes.length) * Math.PI * 2 - Math.PI / 2;
@@ -83,14 +85,14 @@ function drawWheel() {
             const hue = noteToHue(i);
             
             // Calculate actual frequency for this note and octave
-            // Visual octaves 0-4 map to audio octaves 3-7
+            // Visual octaves 0-3 map to audio octaves 3-6
             const audioOctave = octave + 3;
             const frequency = noteToFrequency(notes[i], audioOctave);
             
             // Map frequency to brightness (human hearing range ~20Hz to 20kHz)
             // Lower frequencies = darker, higher frequencies = brighter
             const minFreq = 130; // C3 (~130Hz) - darkest
-            const maxFreq = 4186; // C8 (~4186Hz) - brightest
+            const maxFreq = 1047; // C6 (~1047Hz) - brightest
             const freqRatio = Math.log(frequency / minFreq) / Math.log(maxFreq / minFreq);
             const lightness = 25 + Math.pow(freqRatio, 0.8) * 55; // Gentle curve, 25-80% range
             
@@ -129,8 +131,8 @@ function drawWheel() {
         ctx.globalCompositeOperation = 'multiply';
         
         for (let octave = 0; octave < octaves; octave++) {
-            const baseInnerRadius = Math.max(0, octave * ringWidth);
-            const baseOuterRadius = Math.max(baseInnerRadius + 1, (octave + 1) * ringWidth);
+            const baseInnerRadius = centerRadius + octave * ringWidth;
+            const baseOuterRadius = centerRadius + (octave + 1) * ringWidth;
             
             for (let i = 0; i < notes.length; i++) {
                 const segmentKey = `${notes[i]}-${octave}`;
@@ -434,7 +436,7 @@ function playChordType(chordType) {
     }
     
     const chordNotes = chord.notes;
-    const chordOctave = 2; // Middle ring
+    const chordOctave = 1; // Ring 1 = Octave 4
     
     // Visual feedback
     highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
@@ -483,8 +485,8 @@ function playScaleType(scaleType) {
             const freq = noteToFrequency(note, 4);
             playNote(freq, 300);
             
-            // Visual feedback for current note
-            highlightedSegments = [`${note}-2`]; // Middle ring
+            // Visual feedback for current note - octave 4 maps to ring 1
+            highlightedSegments = [`${note}-1`]; // Ring 1 = Octave 4
             drawWheel();
             
             // Keep highlight active during sequence (don't clear between notes)
@@ -1117,7 +1119,7 @@ function playMelodyWithChords(melody, chords, title) {
                 playChord(chords[i].notes, chords[i].octave, chords[i].duration, 0.12);
                 
                 // Visual highlighting for chord
-                const chordOctave = Math.max(0, Math.min(4, chords[i].octave - 3));
+                const chordOctave = Math.max(0, Math.min(3, chords[i].octave - 3));
                 const chordSegments = chords[i].notes.map(note => `${note}-${chordOctave}`);
                 highlightedSegments = chordSegments;
                 drawWheel();
@@ -1130,12 +1132,12 @@ function playMelodyWithChords(melody, chords, title) {
             playNote(freq, noteData.duration, 0.3); // Melody louder than chords
             
             // Visual highlighting for melody note
-            const visualOctave = Math.max(0, Math.min(4, noteData.octave - 3));
+            const visualOctave = Math.max(0, Math.min(3, noteData.octave - 3));
             const melodySegment = `${noteData.note}-${visualOctave}`;
             
             // Combine chord and melody highlights
             if (chords && chords[i]) {
-                const chordOctave = Math.max(0, Math.min(4, chords[i].octave - 3));
+                const chordOctave = Math.max(0, Math.min(3, chords[i].octave - 3));
                 const chordSegments = chords[i].notes.map(note => `${note}-${chordOctave}`);
                 highlightedSegments = [...chordSegments, melodySegment];
             } else {
@@ -1179,7 +1181,7 @@ function playMelody(melody, title) {
             playNote(freq, noteData.duration, 0.25);
             
             // Visual highlighting
-            const visualOctave = Math.max(0, Math.min(4, noteData.octave - 3)); // Map to visual rings
+            const visualOctave = Math.max(0, Math.min(3, noteData.octave - 3)); // Map to visual rings
             highlightedSegments = [`${noteData.note}-${visualOctave}`];
             drawWheel();
             
@@ -1214,8 +1216,12 @@ canvas.addEventListener('mousemove', (e) => {
     let angle = Math.atan2(y, x) + Math.PI / 2;
     if (angle < 0) angle += Math.PI * 2;
     
-    if (distance <= maxRadius) {
-        const octave = Math.floor(distance / (maxRadius / octaves));
+    const centerRadius = maxRadius * 0.2; // Match drawWheel center
+    
+    if (distance <= maxRadius && distance >= centerRadius) {
+        const adjustedDistance = distance - centerRadius;
+        const availableRadius = maxRadius - centerRadius;
+        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
         const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
         
         hoveredNote = notes[noteIndex];
@@ -1271,17 +1277,20 @@ function handleCanvasTouch(e) {
     let angle = Math.atan2(y, x) + Math.PI / 2;
     if (angle < 0) angle += Math.PI * 2;
     
-    if (distance <= maxRadius) {
-        const octave = Math.floor(distance / (maxRadius / octaves));
+    const centerRadius = maxRadius * 0.2; // Match drawWheel center
+    
+    if (distance <= maxRadius && distance >= centerRadius) {
+        const adjustedDistance = distance - centerRadius;
+        const availableRadius = maxRadius - centerRadius;
+        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
         const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
         const note = notes[noteIndex];
         
-        // Map visual octave to audio octave - shifted up for better audibility
-        // Ring 0 (innermost) = Octave 3 (more audible than octave 2)
+        // Map visual octave to audio octave
+        // Ring 0 (innermost) = Octave 3
         // Ring 1 = Octave 4
-        // Ring 2 (middle) = Octave 5
-        // Ring 3 = Octave 6
-        // Ring 4 (outermost) = Octave 7
+        // Ring 2 = Octave 5
+        // Ring 3 (outermost) = Octave 6
         const audioOctave = octave + 3;
         
         const freq = noteToFrequency(note, audioOctave);
