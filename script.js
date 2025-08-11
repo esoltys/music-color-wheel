@@ -422,15 +422,15 @@ const SCALE_DEFINITIONS = {
         name: 'C Pentatonic Scale',
         description: '5-note scale (Universal scale)'
     },
-    'dorian': {
-        notes: ['C', 'D', 'D#', 'F', 'G', 'A', 'A#'],
-        name: 'C Dorian Mode',
-        description: 'Minor with raised 6th (Celtic sound)'
+    'harmonic': {
+        notes: ['C', 'D', 'D#', 'F', 'G', 'G#', 'B'],
+        name: 'C Harmonic Minor',
+        description: 'Exotic scale with augmented 2nd'
     },
-    'mixolydian': {
-        notes: ['C', 'D', 'E', 'F', 'G', 'A', 'A#'],
-        name: 'C Mixolydian Mode',
-        description: 'Major with flat 7th (Rock sound)'
+    'chromatic_desc': {
+        notes: ['C', 'B', 'A#', 'A', 'G#', 'G', 'F#', 'F', 'E', 'D#', 'D', 'C#'],
+        name: 'Chromatic Descending',
+        description: 'All 12 semitones descending'
     },
     'blues': {
         notes: ['C', 'D#', 'F', 'F#', 'G', 'A#'],
@@ -507,11 +507,7 @@ function playScaleType(scaleType) {
             highlightedSegments = [`${note}-2`]; // Middle ring
             drawWheel();
             
-            // Clear highlight after note duration
-            setTimeout(() => {
-                highlightedSegments = [];
-                drawWheel();
-            }, 300);
+            // Keep highlight active during sequence (don't clear between notes)
             
             // Reset UI after last note
             if (index === scaleNotes.length - 1) {
@@ -675,30 +671,96 @@ function playHappyBirthday() {
 
 function playAmazingGrace() {
     initAudio();
-    // Amazing Grace opening: G-C-E-C-E-D-C-A-G
+    // Amazing Grace complete first verse: "Amazing grace, how sweet the sound, that saved a wretch like me"
     const melody = [
-        {note: 'G', octave: 3, duration: 400},
-        {note: 'C', octave: 4, duration: 800},
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'C', octave: 4, duration: 400},
-        {note: 'E', octave: 4, duration: 400},
-        {note: 'D', octave: 4, duration: 400},
-        {note: 'C', octave: 4, duration: 1200},
-        {note: 'A', octave: 3, duration: 400},
-        {note: 'G', octave: 3, duration: 800}
+        // "A-ma-zing grace"
+        {note: 'G', octave: 3, duration: 400},   // A-
+        {note: 'C', octave: 4, duration: 600},   // ma-
+        {note: 'E', octave: 4, duration: 400},   // zing
+        {note: 'C', octave: 4, duration: 400},   // grace
+        
+        // "how sweet the sound"
+        {note: 'E', octave: 4, duration: 400},   // how
+        {note: 'D', octave: 4, duration: 300},   // sweet
+        {note: 'C', octave: 4, duration: 900},   // the
+        {note: 'A', octave: 3, duration: 400},   // sound
+        {note: 'G', octave: 3, duration: 800},   // (pause)
+        
+        // "that saved a wretch"
+        {note: 'G', octave: 3, duration: 400},   // that
+        {note: 'C', octave: 4, duration: 600},   // saved
+        {note: 'E', octave: 4, duration: 400},   // a
+        {note: 'C', octave: 4, duration: 400},   // wretch
+        
+        // "like me"
+        {note: 'E', octave: 4, duration: 400},   // like
+        {note: 'D', octave: 4, duration: 300},   // me
+        {note: 'C', octave: 4, duration: 1200},  // (hold)
+        
+        // Second phrase: "I once was lost, but now am found"
+        {note: 'A', octave: 3, duration: 400},   // I
+        {note: 'A', octave: 3, duration: 400},   // once
+        {note: 'G', octave: 3, duration: 400},   // was
+        {note: 'C', octave: 4, duration: 600},   // lost
+        {note: 'E', octave: 4, duration: 400},   // but
+        {note: 'G', octave: 4, duration: 500},   // now
+        {note: 'F', octave: 4, duration: 300},   // am
+        {note: 'E', octave: 4, duration: 800},   // found
+        
+        // "was blind, but now I see"
+        {note: 'G', octave: 3, duration: 400},   // was
+        {note: 'C', octave: 4, duration: 600},   // blind
+        {note: 'E', octave: 4, duration: 400},   // but
+        {note: 'C', octave: 4, duration: 400},   // now
+        {note: 'E', octave: 4, duration: 400},   // I
+        {note: 'D', octave: 4, duration: 300},   // see
+        {note: 'C', octave: 4, duration: 1200}   // (final hold)
     ];
     
-    // Rich C-F-Am-G progression  
+    // Extended chord progression for complete verse
     const chords = [
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},  // C major
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},  // A minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},  // C major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},  // G major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 1200}, // C major
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 800}   // C major
+        // "A-ma-zing grace"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        
+        // "how sweet the sound"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},   // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 900},   // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},   // C major
+        
+        // "that saved a wretch"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        
+        // "like me"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},   // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 1200},  // C major
+        
+        // "I once was lost, but now am found"
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},   // A minor
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 500},   // G major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 300},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 800},   // C major
+        
+        // "was blind, but now I see"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 400},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},   // G major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 1200}   // C major (final)
     ];
     
     playMelodyWithChords(melody, chords, 'Amazing Grace');
@@ -706,36 +768,165 @@ function playAmazingGrace() {
 
 function playGreensleeves() {
     initAudio();
-    // Greensleeves (A minor): A-C-D-E-F-E-D-B-G-A
+    // Greensleeves complete verse: "Alas my love, you do me wrong, to cast me off discourteously..."
     const melody = [
-        {note: 'A', octave: 4, duration: 600},
-        {note: 'C', octave: 5, duration: 400},
-        {note: 'D', octave: 5, duration: 300},
-        {note: 'E', octave: 5, duration: 500},
-        {note: 'F', octave: 5, duration: 400},
-        {note: 'E', octave: 5, duration: 300},
-        {note: 'D', octave: 5, duration: 600},
-        {note: 'B', octave: 4, duration: 400},
-        {note: 'G', octave: 4, duration: 500},
-        {note: 'A', octave: 4, duration: 800}
+        // "Alas my love, you do me wrong"
+        {note: 'A', octave: 4, duration: 600},   // A-
+        {note: 'C', octave: 5, duration: 400},   // las
+        {note: 'D', octave: 5, duration: 600},   // my
+        {note: 'E', octave: 5, duration: 900},   // love
+        {note: 'F', octave: 5, duration: 400},   // you
+        {note: 'E', octave: 5, duration: 300},   // do
+        {note: 'D', octave: 5, duration: 600},   // me
+        {note: 'B', octave: 4, duration: 900},   // wrong
+        
+        // "to cast me off discourteously"  
+        {note: 'G', octave: 4, duration: 600},   // to
+        {note: 'A', octave: 4, duration: 400},   // cast
+        {note: 'B', octave: 4, duration: 600},   // me
+        {note: 'C', octave: 5, duration: 900},   // off
+        {note: 'D', octave: 5, duration: 400},   // dis-
+        {note: 'C', octave: 5, duration: 300},   // cour-
+        {note: 'B', octave: 4, duration: 300},   // teous-
+        {note: 'A', octave: 4, duration: 1200},  // ly
+        
+        // "for I have loved you well and long"
+        {note: 'A', octave: 4, duration: 600},   // for
+        {note: 'C', octave: 5, duration: 400},   // I
+        {note: 'D', octave: 5, duration: 600},   // have
+        {note: 'E', octave: 5, duration: 900},   // loved
+        {note: 'F', octave: 5, duration: 400},   // you
+        {note: 'E', octave: 5, duration: 300},   // well
+        {note: 'D', octave: 5, duration: 600},   // and
+        {note: 'B', octave: 4, duration: 900},   // long
+        
+        // "delighting in your company"
+        {note: 'G', octave: 4, duration: 600},   // de-
+        {note: 'A', octave: 4, duration: 400},   // light-
+        {note: 'B', octave: 4, duration: 600},   // ing
+        {note: 'C', octave: 5, duration: 900},   // in
+        {note: 'D', octave: 5, duration: 400},   // your
+        {note: 'C', octave: 5, duration: 300},   // com-
+        {note: 'B', octave: 4, duration: 300},   // pan-
+        {note: 'A', octave: 4, duration: 1200},  // y
+        
+        // Chorus: "Greensleeves was all my joy"
+        {note: 'D', octave: 5, duration: 800},   // Green-
+        {note: 'F', octave: 5, duration: 600},   // sleeves
+        {note: 'E', octave: 5, duration: 600},   // was
+        {note: 'D', octave: 5, duration: 400},   // all
+        {note: 'C', octave: 5, duration: 600},   // my
+        {note: 'A', octave: 4, duration: 900},   // joy
+        
+        // "Greensleeves was my delight"
+        {note: 'D', octave: 5, duration: 800},   // Green-
+        {note: 'F', octave: 5, duration: 600},   // sleeves
+        {note: 'E', octave: 5, duration: 600},   // was
+        {note: 'D', octave: 5, duration: 400},   // my
+        {note: 'C', octave: 5, duration: 300},   // de-
+        {note: 'B', octave: 4, duration: 1200},  // light
+        
+        // "Greensleeves was my heart of gold"
+        {note: 'D', octave: 5, duration: 800},   // Green-
+        {note: 'F', octave: 5, duration: 600},   // sleeves
+        {note: 'E', octave: 5, duration: 600},   // was
+        {note: 'D', octave: 5, duration: 400},   // my
+        {note: 'C', octave: 5, duration: 300},   // heart
+        {note: 'B', octave: 4, duration: 300},   // of
+        {note: 'A', octave: 4, duration: 900},   // gold
+        
+        // "and who but my lady Greensleeves"
+        {note: 'G', octave: 4, duration: 400},   // and
+        {note: 'A', octave: 4, duration: 400},   // who
+        {note: 'B', octave: 4, duration: 600},   // but
+        {note: 'C', octave: 5, duration: 900},   // my
+        {note: 'D', octave: 5, duration: 400},   // la-
+        {note: 'C', octave: 5, duration: 300},   // dy
+        {note: 'B', octave: 4, duration: 300},   // Green-
+        {note: 'A', octave: 4, duration: 1500}   // sleeves (final)
     ];
     
-    // Complex minor key harmony: Am - F - G - Em - Am - F - G - Am
+    // Extended chord progression for complete verse and chorus
     const chords = [
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},  // A minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},  // G major
-        {notes: ['E', 'G', 'B'], octave: 3, duration: 500},  // E minor
-        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},  // F major
-        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},  // C major
-        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},  // G major
-        {notes: ['E', 'G', 'B'], octave: 3, duration: 400},  // E minor
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 500},  // A minor
-        {notes: ['A', 'C', 'E'], octave: 3, duration: 800}   // A minor
+        // "Alas my love, you do me wrong"
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 900},   // E minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        
+        // "to cast me off discourteously"  
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 1200},  // A minor
+        
+        // "for I have loved you well and long"
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 900},   // E minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        
+        // "delighting in your company"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 1200},  // A minor
+        
+        // Chorus: "Greensleeves was all my joy"
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},   // G major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 600},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 600},   // A minor
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        
+        // "Greensleeves was my delight"
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},   // G major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 600},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},   // A minor
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 1200},  // E minor
+        
+        // "Greensleeves was my heart of gold"
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 800},   // G major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 600},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 600},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 400},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 300},   // A minor
+        {notes: ['E', 'G', 'B'], octave: 3, duration: 300},   // E minor
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        
+        // "and who but my lady Greensleeves"
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 400},   // C major
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 600},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 900},   // A minor
+        {notes: ['F', 'A', 'C'], octave: 3, duration: 400},   // F major
+        {notes: ['C', 'E', 'G'], octave: 3, duration: 300},   // C major
+        {notes: ['G', 'B', 'D'], octave: 3, duration: 300},   // G major
+        {notes: ['A', 'C', 'E'], octave: 3, duration: 1500}   // A minor (final)
     ];
     
     playMelodyWithChords(melody, chords, 'Greensleeves');
 }
+
 
 function playOdeToJoy() {
     initAudio();
@@ -976,11 +1167,7 @@ function playMelodyWithChords(melody, chords, title) {
             document.getElementById('freqDisplay').textContent = `${title} - Note ${i + 1} of ${melody.length}`;
         }, delay + 50); // Melody slightly after chord
         
-        // Clear highlighting briefly before the next note
-        setTimeout(() => {
-            highlightedSegments = [];
-            drawWheel();
-        }, delay + noteData.duration - 30);
+        // Keep highlighting active during melody sequence
         
         delay += noteData.duration + 50;
     });
@@ -1020,11 +1207,7 @@ function playMelody(melody, title) {
             document.getElementById('freqDisplay').textContent = `${title} - Note ${i + 1} of ${melody.length}`;
         }, delay);
         
-        // Clear highlighting briefly before the next note (for repeated note flashing)
-        setTimeout(() => {
-            highlightedSegments = [];
-            drawWheel();
-        }, delay + noteData.duration - 30); // Clear 30ms before next note
+        // Keep highlighting active during melody sequence
         
         delay += noteData.duration + 50; // Small gap between notes
     });
@@ -1187,12 +1370,12 @@ window.addEventListener('load', () => {
         playScaleType('pentatonic');
     });
     
-    document.getElementById('dorian-btn').addEventListener('click', () => {
-        playScaleType('dorian');
+    document.getElementById('harmonic-btn').addEventListener('click', () => {
+        playScaleType('harmonic');
     });
     
-    document.getElementById('mixolydian-btn').addEventListener('click', () => {
-        playScaleType('mixolydian');
+    document.getElementById('chromatic-desc-btn').addEventListener('click', () => {
+        playScaleType('chromatic_desc');
     });
     
     document.getElementById('blues-btn').addEventListener('click', () => {
