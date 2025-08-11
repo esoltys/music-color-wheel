@@ -145,6 +145,154 @@ function getCurrentChordNotes() {
     return chordNotes;
 }
 
+// Chord recognition database
+const chordDatabase = {
+    // Major triads
+    'C,E,G': 'C Major',
+    'C#,F,G#': 'C# Major',
+    'D,F#,A': 'D Major',
+    'D#,G,A#': 'D# Major',
+    'E,G#,B': 'E Major',
+    'F,A,C': 'F Major',
+    'F#,A#,C#': 'F# Major',
+    'G,B,D': 'G Major',
+    'G#,C,D#': 'G# Major',
+    'A,C#,E': 'A Major',
+    'A#,D,F': 'A# Major',
+    'B,D#,F#': 'B Major',
+    
+    // Minor triads
+    'C,D#,G': 'C Minor',
+    'C#,E,G#': 'C# Minor',
+    'D,F,A': 'D Minor',
+    'D#,F#,A#': 'D# Minor',
+    'E,G,B': 'E Minor',
+    'F,G#,C': 'F Minor',
+    'F#,A,C#': 'F# Minor',
+    'G,A#,D': 'G Minor',
+    'G#,B,D#': 'G# Minor',
+    'A,C,E': 'A Minor',
+    'A#,C#,F': 'A# Minor',
+    'B,D,F#': 'B Minor',
+    
+    // Diminished triads
+    'C,D#,F#': 'C Diminished',
+    'C#,E,G': 'C# Diminished',
+    'D,F,G#': 'D Diminished',
+    'D#,F#,A': 'D# Diminished',
+    'E,G,A#': 'E Diminished',
+    'F,G#,B': 'F Diminished',
+    'F#,A,C': 'F# Diminished',
+    'G,A#,C#': 'G Diminished',
+    'G#,B,D': 'G# Diminished',
+    'A,C,D#': 'A Diminished',
+    'A#,C#,E': 'A# Diminished',
+    'B,D,F': 'B Diminished',
+    
+    // Augmented triads
+    'C,E,G#': 'C Augmented',
+    'C#,F,A': 'C# Augmented',
+    'D,F#,A#': 'D Augmented',
+    'D#,G,B': 'D# Augmented',
+    'E,G#,C': 'E Augmented',
+    'F,A,C#': 'F Augmented',
+    'F#,A#,D': 'F# Augmented',
+    'G,B,D#': 'G Augmented',
+    'G#,C,E': 'G# Augmented',
+    'A,C#,F': 'A Augmented',
+    'A#,D,F#': 'A# Augmented',
+    'B,D#,G': 'B Augmented',
+    
+    // Seventh chords (dominant 7ths)
+    'C,E,G,A#': 'C7',
+    'D,F#,A,C': 'D7',
+    'E,G#,B,D': 'E7',
+    'F,A,C,D#': 'F7',
+    'G,B,D,F': 'G7',
+    'A,C#,E,G': 'A7',
+    'B,D#,F#,A': 'B7',
+    
+    // Major 7ths
+    'C,E,G,B': 'C Major 7',
+    'D,F#,A,C#': 'D Major 7',
+    'E,G#,B,D#': 'E Major 7',
+    'F,A,C,E': 'F Major 7',
+    'G,B,D,F#': 'G Major 7',
+    'A,C#,E,G#': 'A Major 7',
+    'B,D#,F#,A#': 'B Major 7',
+    
+    // Minor 7ths
+    'C,D#,G,A#': 'C Minor 7',
+    'D,F,A,C': 'D Minor 7',
+    'E,G,B,D': 'E Minor 7',
+    'F,G#,C,D#': 'F Minor 7',
+    'G,A#,D,F': 'G Minor 7',
+    'A,C,E,G': 'A Minor 7',
+    'B,D,F#,A': 'B Minor 7',
+    
+    // Suspended chords
+    'C,F,G': 'C Suspended 4th',
+    'C,D,G': 'C Suspended 2nd',
+    'D,G,A': 'D Suspended 4th',
+    'D,E,A': 'D Suspended 2nd',
+    'E,A,B': 'E Suspended 4th',
+    'E,F#,B': 'E Suspended 2nd',
+    'F,A#,C': 'F Suspended 4th',
+    'F,G,C': 'F Suspended 2nd',
+    'G,C,D': 'G Suspended 4th',
+    'G,A,D': 'G Suspended 2nd',
+    'A,D,E': 'A Suspended 4th',
+    'A,B,E': 'A Suspended 2nd',
+    'B,E,F#': 'B Suspended 4th',
+    'B,C#,F#': 'B Suspended 2nd',
+    
+    // Add 9 chords (major triad + 9th)
+    'C,D,E,G': 'C Add 9',
+    'C#,D#,F,G#': 'C# Add 9',
+    'D,E,F#,A': 'D Add 9',
+    'D#,F,G,A#': 'D# Add 9',
+    'E,F#,G#,B': 'E Add 9',
+    'F,G,A,C': 'F Add 9',
+    'F#,G#,A#,C#': 'F# Add 9',
+    'G,A,B,D': 'G Add 9',
+    'G#,A#,C,D#': 'G# Add 9',
+    'A,B,C#,E': 'A Add 9',
+    'A#,C,D,F': 'A# Add 9',
+    'B,C#,D#,F#': 'B Add 9'
+};
+
+// Recognize chord from unique note names
+function recognizeChord(uniqueNotes) {
+    if (uniqueNotes.length < 2) return null;
+    
+    // Sort notes to normalize chord voicings
+    const sortedNotes = [...uniqueNotes].sort();
+    const chordKey = sortedNotes.join(',');
+    
+    // Check direct match first
+    if (chordDatabase[chordKey]) {
+        return chordDatabase[chordKey];
+    }
+    
+    // Check for chord inversions by trying different root positions
+    for (let i = 0; i < sortedNotes.length; i++) {
+        const rotated = [...sortedNotes.slice(i), ...sortedNotes.slice(0, i)];
+        const rotatedKey = rotated.join(',');
+        if (chordDatabase[rotatedKey]) {
+            return chordDatabase[rotatedKey] + (i > 0 ? ' (inversion)' : '');
+        }
+    }
+    
+    // If no exact match, provide generic description
+    if (uniqueNotes.length === 2) {
+        return `${uniqueNotes[0]} + ${uniqueNotes[1]} interval`;
+    } else if (uniqueNotes.length >= 3) {
+        return `${uniqueNotes[0]} + ${uniqueNotes.slice(1).join('+')} chord`;
+    }
+    
+    return null;
+}
+
 function drawWheel() {
     ctx.clearRect(0, 0, size, size);
     
@@ -559,9 +707,15 @@ function playChordType(chordType) {
     highlightedSegments = chordNotes.map(note => `${note}-${chordOctave}`);
     drawWheel();
     
-    // UI updates
-    document.getElementById('noteDisplay').textContent = chord.name;
-    document.getElementById('freqDisplay').textContent = chord.description;
+    // UI updates with chord recognition taking precedence
+    const recognizedChord = recognizeChord(chordNotes);
+    if (recognizedChord) {
+        document.getElementById('noteDisplay').textContent = recognizedChord;
+        document.getElementById('freqDisplay').textContent = `${chord.name} - ${chord.description}`;
+    } else {
+        document.getElementById('noteDisplay').textContent = chord.name;
+        document.getElementById('freqDisplay').textContent = chord.description;
+    }
     
     // Play chord
     chordNotes.forEach(note => {
@@ -1368,20 +1522,34 @@ canvas.addEventListener('mousemove', (e) => {
     }
 });
 
-// Prevent rapid repeated touches
-let lastTouchTime = 0;
+// Multi-touch chord detection system
+let activeTouches = new Map(); // touchId -> {note, octave, x, y}
+let lastSingleTouchTime = 0;
 const TOUCH_DEBOUNCE_MS = 150;
+const MULTI_TOUCH_DELAY_MS = 200; // Wait for additional touches
 
 function handleCanvasTouch(e) {
     // Prevent default touch behavior
     e.preventDefault();
     
-    const now = Date.now();
-    if (now - lastTouchTime < TOUCH_DEBOUNCE_MS) {
+    // Handle mouse clicks normally
+    if (e.type === 'click') {
+        const now = Date.now();
+        if (now - lastSingleTouchTime < TOUCH_DEBOUNCE_MS) {
+            return;
+        }
+        lastSingleTouchTime = now;
+        handleSingleTouch(e);
         return;
     }
-    lastTouchTime = now;
     
+    // Handle all touch events (single and multi-touch)
+    if (e.type === 'touchstart') {
+        handleMultiTouchStart(e);
+    }
+}
+
+function handleSingleTouch(e) {
     // Handle both touch and mouse coordinates
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -1404,10 +1572,6 @@ function handleCanvasTouch(e) {
         const note = notes[noteIndex];
         
         // Map visual octave to audio octave
-        // Ring 0 (innermost) = Octave 3
-        // Ring 1 = Octave 4
-        // Ring 2 = Octave 5
-        // Ring 3 (outermost) = Octave 6
         const audioOctave = octave + 3;
         
         const freq = noteToFrequency(note, audioOctave);
@@ -1431,6 +1595,99 @@ function handleCanvasTouch(e) {
     }
 }
 
+function handleMultiTouchStart(e) {
+    // Add all new touches to our active touches map and play notes immediately
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        const touchData = getTouchNoteData(touch);
+        
+        if (touchData) {
+            activeTouches.set(touch.identifier, touchData);
+            
+            // Play the note immediately when touched
+            const freq = noteToFrequency(touchData.note, touchData.audioOctave);
+            playNote(freq, 800, 0.3); // Same settings as single touch but longer duration
+        }
+    }
+    
+    // Update visual feedback for all active touches
+    updateMultiTouchVisuals();
+}
+
+function getTouchNoteData(touch) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (touch.clientX - rect.left) * (canvas.width / rect.width) - centerX;
+    const y = (touch.clientY - rect.top) * (canvas.height / rect.height) - centerY;
+    
+    const distance = Math.sqrt(x * x + y * y);
+    let angle = Math.atan2(y, x) + Math.PI / 2;
+    if (angle < 0) angle += Math.PI * 2;
+    
+    const centerRadius = maxRadius * 0.2;
+    
+    if (distance <= maxRadius && distance >= centerRadius) {
+        const adjustedDistance = distance - centerRadius;
+        const availableRadius = maxRadius - centerRadius;
+        const octave = Math.floor(adjustedDistance / (availableRadius / octaves));
+        const noteIndex = Math.floor((angle / (Math.PI * 2)) * notes.length) % notes.length;
+        const note = notes[noteIndex];
+        const audioOctave = octave + 3;
+        
+        return { note, octave, audioOctave, x, y };
+    }
+    
+    return null;
+}
+
+function updateMultiTouchVisuals() {
+    // Highlight all currently touched segments
+    highlightedSegments = Array.from(activeTouches.values()).map(touch => `${touch.note}-${touch.octave}`);
+    drawWheel();
+    
+    // Update display with chord recognition
+    const touchCount = activeTouches.size;
+    if (touchCount > 1) {
+        const uniqueNotes = [...new Set(Array.from(activeTouches.values()).map(t => t.note))];
+        const recognizedChord = recognizeChord(uniqueNotes);
+        
+        if (recognizedChord) {
+            document.getElementById('noteDisplay').textContent = recognizedChord;
+            document.getElementById('freqDisplay').textContent = `${touchCount} notes - ${uniqueNotes.join(' + ')}`;
+        } else {
+            const noteNames = Array.from(activeTouches.values()).map(t => `${t.note}${t.audioOctave}`);
+            document.getElementById('noteDisplay').textContent = `Multi-touch: ${noteNames.join(' + ')}`;
+            document.getElementById('freqDisplay').textContent = `${touchCount} notes playing`;
+        }
+    } else if (touchCount === 1) {
+        const touch = activeTouches.values().next().value;
+        document.getElementById('noteDisplay').textContent = `${touch.note}${touch.audioOctave}`;
+        document.getElementById('freqDisplay').textContent = 'Touch more notes for chords';
+    }
+}
+
+function handleMultiTouchEnd(e) {
+    e.preventDefault();
+    
+    // Remove ended touches from active touches
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        const touch = e.changedTouches[i];
+        activeTouches.delete(touch.identifier);
+    }
+    
+    // Update visuals for remaining touches
+    if (activeTouches.size > 0) {
+        updateMultiTouchVisuals();
+    } else {
+        // Clear all highlights and reset display when no touches remain
+        highlightedSegments = [];
+        drawWheel();
+        document.getElementById('noteDisplay').textContent = 'Click to hear notes';
+        document.getElementById('noteDisplay').style.color = '#fff';
+        document.getElementById('freqDisplay').textContent = 'Hover over the wheel';
+    }
+}
+
+
 // Add both click and touch event listeners
 canvas.addEventListener('click', handleCanvasTouch);
 canvas.addEventListener('touchstart', handleCanvasTouch, { passive: false });
@@ -1440,10 +1697,8 @@ canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
 });
 
-// Prevent touch hold effects
-canvas.addEventListener('touchend', (e) => {
-    e.preventDefault();
-});
+canvas.addEventListener('touchend', handleMultiTouchEnd, { passive: false });
+canvas.addEventListener('touchcancel', handleMultiTouchEnd, { passive: false });
 
 canvas.addEventListener('mouseleave', () => {
     hoveredNote = null;
