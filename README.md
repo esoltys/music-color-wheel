@@ -7,7 +7,7 @@ An interactive visualization that maps musical notes to colors in a circular int
 ## Features
 
 ### Interactive Interface
-- **5-octave color wheel** with chromatic notes mapped to HSL color space
+- **4-octave color wheel** with chromatic notes mapped to HSL color space and chord color blending center
 - **Click to play** individual notes across different octaves
 - **Hover for information** - see note names, frequencies, and octave ranges
 - **Mobile-optimized** with collapsible hamburger menus and touch-friendly controls
@@ -29,6 +29,7 @@ An interactive visualization that maps musical notes to colors in a circular int
 - **Real-time audio synthesis** using Web Audio API with envelope shaping
 - **Equal loudness compensation** for consistent perceived volume across frequencies
 - **Synchronized visual highlighting** showing both melody and chord relationships
+- **Chord color blending** in center circle - RGB mixing of playing notes with frequency-based weighting
 - **Flashing notes** for repeated pitches in melodies
 - **Frequency display** showing exact Hz values for each note
 - **Touch-optimized** with debounced interactions and mobile gesture support
@@ -57,7 +58,7 @@ This visualization explores the fascinating relationship between musical and col
 Each musical note is mapped to a specific color around the wheel:
 - **C = Red (0°)**, C# = Orange-Red (30°), D = Orange (45°), etc.
 - **Inner rings** represent lower octaves, **outer rings** represent higher octaves
-- **Visual octaves 0-4** map to **audio octaves 3-7** for optimal audibility
+- **Visual octaves 0-3** map to **audio octaves 3-6** for optimal audibility
 - **Hover** to see note names, frequencies, and octave information
 - **Click** to play individual notes with 500ms duration
 - **Mobile menus** - separate hamburger (☰) and info (?) buttons for controls and legend
